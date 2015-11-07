@@ -1,0 +1,19 @@
+name: gjs_integration
+description: A starting point for Dart libraries or applications.
+version: 0.0.1
+#author: Your Name <email@example.com>
+#homepage: https://www.example.com
+
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+
+dependencies:
+  barback: '^0.15.2'
+  analyzer: '^0.26.1'
+  code_transformers: '^0.2.9'
+
+dev_dependencies:
+  test: '>=0.12.0 <0.13.0'
+
+transformers:
+- gjs_integration
