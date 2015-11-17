@@ -27,12 +27,41 @@
     }
     this.wrapped = result;
   };
-  self.ImportWrapper.prototype.ctor = function (args) {
-    return new this.wrapped(args);
+  self.ImportWrapper.prototype.ctor = function () {
+    if (arguments.length === 0) {
+      return new this.wrapped();
+    }
+    if (arguments.length === 1) {
+      return new this.wrapped(arguments[0]);
+    }
+    if (arguments.length === 2) {
+      return new this.wrapped(arguments[0], arguments[1]);
+    }
+    if (arguments.length === 3) {
+      return new this.wrapped(arguments[0], arguments[1], arguments[2]);
+    }
+    throw("too many arguments");    
   };
-  self.ImportWrapper.prototype.func = function (args, _) {
-    print(_);
-    return this.wrapped.call(args);
+  self.ImportWrapper.prototype.func = function () {
+    if (arguments.length === 0) {
+      return this.wrapped();
+    }
+    if (arguments.length === 1) {
+      return this.wrapped(arguments[0]);
+    }
+    if (arguments.length === 2) {
+      return this.wrapped(arguments[0], arguments[1]);
+    }
+    if (arguments.length === 3) {
+      return this.wrapped(arguments[0], arguments[1], arguments[2]);
+    }
+    if (arguments.length === 4) {
+      return this.wrapped(arguments[0], arguments[1], arguments[2], arguments[3]);
+    }
+    if (arguments.length === 5) {
+      return this.wrapped(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+    }
+    throw("too many arguments");    
   };
   self.ImportWrapper.prototype.getValue = function () {
     return this.wrapped;
@@ -157,7 +186,7 @@
     return id;
   }
   function addTask(f) {
-    GLib.idle_add(GLib.PRIORITY_IDLE_HIGH, f);
+    GLib.idle_add(GLib.PRIORITY_HIGH_IDLE, f);
   }
   self.setTimeout = addTimer;
   self.clearTimeout = cancelTimer;
@@ -759,7 +788,7 @@ var getKeys = function(obj){
       noSuchMethod$1: ["super$Interceptor$noSuchMethod", function(receiver, invocation) {
         throw H.wrapException(P.NoSuchMethodError$(receiver, invocation.get$memberName(), invocation.get$positionalArguments(), invocation.get$namedArguments(), null));
       }],
-      "%": "DOMError|FileError|MediaError|MediaKeyError|NavigatorUserMediaError|PositionError|SQLError|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedString"
+      "%": "DOMError|FileError|MediaError|MediaKeyError|NavigatorUserMediaError|PositionError|SQLError|SVGAnimatedLength|SVGAnimatedLengthList|SVGAnimatedNumber|SVGAnimatedNumberList|SVGAnimatedString|Screen"
     },
     JSBool: {
       "^": "Interceptor;",
@@ -936,6 +965,12 @@ var getKeys = function(obj){
     },
     JSNumber: {
       "^": "Interceptor;",
+      get$isNegative: function(receiver) {
+        return receiver === 0 ? 1 / receiver < 0 : receiver < 0;
+      },
+      get$isNaN: function(receiver) {
+        return isNaN(receiver);
+      },
       remainder$1: function(receiver, b) {
         return receiver % b;
       },
@@ -948,6 +983,9 @@ var getKeys = function(obj){
           return t1 + 0;
         }
         throw H.wrapException(new P.UnsupportedError("" + receiver));
+      },
+      toDouble$0: function(receiver) {
+        return receiver;
       },
       toString$0: function(receiver) {
         if (receiver === 0 && 1 / receiver < 0)
@@ -999,6 +1037,11 @@ var getKeys = function(obj){
         }
         return t1;
       },
+      $or: function(receiver, other) {
+        if (typeof other !== "number")
+          throw H.wrapException(H.argumentErrorValue(other));
+        return (receiver | other) >>> 0;
+      },
       $xor: function(receiver, other) {
         if (typeof other !== "number")
           throw H.wrapException(H.argumentErrorValue(other));
@@ -1018,11 +1061,13 @@ var getKeys = function(obj){
     },
     JSInt: {
       "^": "JSNumber;",
+      $is$double: 1,
       $isnum: 1,
       $is$int: 1
     },
     JSDouble: {
       "^": "JSNumber;",
+      $is$double: 1,
       $isnum: 1
     },
     JSString: {
@@ -1251,7 +1296,7 @@ var getKeys = function(obj){
         case "error":
           throw H.wrapException(t1.$index(msg, "msg"));
       }
-    }, null, null, 4, 0, null, 4, 5],
+    }, null, null, 4, 0, null, 9, 10],
     IsolateNatives__log: function(msg) {
       var trace, t1, t2, exception;
       if (init.globalState.isWorker === true) {
@@ -1306,7 +1351,7 @@ var getKeys = function(obj){
       static: {_Manager__serializePrintMessage: [function(object) {
           var t1 = P.LinkedHashMap__makeLiteral(["command", "print", "msg", object]);
           return new H._Serializer(true, P.LinkedHashMap_LinkedHashMap$identity(null, P.$int)).serialize$1(t1);
-        }, null, null, 2, 0, null, 3]}
+        }, null, null, 2, 0, null, 8]}
     },
     _IsolateContext: {
       "^": "Object;id,ports,weakPorts,isolateStatics<,controlPort<,pauseCapability,terminateCapability,initialized?,isPaused<,delayedEvents<,pauseTokens,doneHandlers,_scheduledControlEvents,_isExecutingEvent,errorsAreFatal,errorPorts",
@@ -1526,7 +1571,7 @@ var getKeys = function(obj){
         if (t1 != null)
           t1.clear$0(0);
         for (t1 = this.ports, t2 = t1.get$values(t1), t2 = t2.get$iterator(t2); t2.moveNext$0();)
-          t2.get$current()._close$0();
+          t2.get$current().__isolate_helper$_close$0();
         t1.clear$0(0);
         this.weakPorts.clear$0(0);
         init.globalState.isolates.remove$1(0, this.id);
@@ -1541,10 +1586,10 @@ var getKeys = function(obj){
           }
           this.doneHandlers = null;
         }
-      }, "call$0", "get$kill", 0, 0, 2]
+      }, "call$0", "get$kill", 0, 0, 1]
     },
     _IsolateContext_handlePing_respond: {
-      "^": "Closure:2;_captured_responsePort_0,_captured_response_1",
+      "^": "Closure:1;_captured_responsePort_0,_captured_response_1",
       call$0: [function() {
         this._captured_responsePort_0.send$1(this._captured_response_1);
       }, null, null, 0, 0, null, "call"]
@@ -1619,9 +1664,9 @@ var getKeys = function(obj){
       }
     },
     _EventLoop__runHelper_next: {
-      "^": "Closure:2;__isolate_helper$_captured_this_0",
+      "^": "Closure:1;_captured_this_0",
       call$0: function() {
-        if (!this.__isolate_helper$_captured_this_0.runIteration$0())
+        if (!this._captured_this_0.runIteration$0())
           return;
         P.Timer_Timer(C.Duration_0, this);
       }
@@ -1647,7 +1692,7 @@ var getKeys = function(obj){
       }
     },
     IsolateNatives__startIsolate_runStartFunction: {
-      "^": "Closure:2;_captured_topLevel_0,_captured_args_1,_captured_message_2,_captured_isSpawnUri_3,_captured_context_4",
+      "^": "Closure:1;_captured_topLevel_0,_captured_args_1,_captured_message_2,_captured_isSpawnUri_3,_captured_context_4",
       call$0: function() {
         var t1, t2, t3, t4;
         t1 = this._captured_context_4;
@@ -1703,9 +1748,9 @@ var getKeys = function(obj){
       }
     },
     _NativeJsSendPort_send_closure: {
-      "^": "Closure:0;__isolate_helper$_captured_this_0,_captured_msg_1",
+      "^": "Closure:0;_captured_this_0,_captured_msg_1",
       call$0: function() {
-        var t1 = this.__isolate_helper$_captured_this_0._receivePort;
+        var t1 = this._captured_this_0._receivePort;
         if (!t1.get$_isClosed())
           t1.__isolate_helper$_add$1(this._captured_msg_1);
       }
@@ -1742,7 +1787,7 @@ var getKeys = function(obj){
     },
     RawReceivePortImpl: {
       "^": "Object;_id<,_handler,_isClosed<",
-      _close$0: function() {
+      __isolate_helper$_close$0: function() {
         this._isClosed = true;
         this._handler = null;
       },
@@ -1758,6 +1803,13 @@ var getKeys = function(obj){
     },
     TimerImpl: {
       "^": "Object;_once,_inEventLoop,_handle",
+      TimerImpl$periodic$2: function(milliseconds, callback) {
+        if (self.setTimeout != null) {
+          ++init.globalState.topEventLoop._activeJsAsyncCount;
+          this._handle = self.setInterval(H.convertDartClosureToJS(new H.TimerImpl$periodic_closure(this, callback), 0), milliseconds);
+        } else
+          throw H.wrapException(new P.UnsupportedError("Periodic timer."));
+      },
       TimerImpl$2: function(milliseconds, callback) {
         var t1, t2;
         if (milliseconds === 0)
@@ -1780,21 +1832,31 @@ var getKeys = function(obj){
           var t1 = new H.TimerImpl(true, false, null);
           t1.TimerImpl$2(milliseconds, callback);
           return t1;
+        }, TimerImpl$periodic: function(milliseconds, callback) {
+          var t1 = new H.TimerImpl(false, false, null);
+          t1.TimerImpl$periodic$2(milliseconds, callback);
+          return t1;
         }}
     },
     TimerImpl_internalCallback: {
-      "^": "Closure:2;__isolate_helper$_captured_this_0,_captured_callback_1",
+      "^": "Closure:1;_captured_this_0,_captured_callback_1",
       call$0: function() {
-        this.__isolate_helper$_captured_this_0._handle = null;
+        this._captured_this_0._handle = null;
         this._captured_callback_1.call$0();
       }
     },
     TimerImpl_internalCallback0: {
-      "^": "Closure:2;_captured_this_2,_captured_callback_3",
+      "^": "Closure:1;_captured_this_2,_captured_callback_3",
       call$0: [function() {
         this._captured_this_2._handle = null;
         H.leaveJsAsync();
         this._captured_callback_3.call$0();
+      }, null, null, 0, 0, null, "call"]
+    },
+    TimerImpl$periodic_closure: {
+      "^": "Closure:0;_captured_this_0,_captured_callback_1",
+      call$0: [function() {
+        this._captured_callback_1.call$1(this._captured_this_0);
       }, null, null, 0, 0, null, "call"]
     },
     CapabilityImpl: {
@@ -1875,7 +1937,7 @@ var getKeys = function(obj){
         if (!(x instanceof P.Object))
           this.unsupported$1(x);
         return ["dart", init.classIdExtractor(x), this.serializeArrayInPlace$1(init.classFieldsExtractor(x))];
-      }, "call$1", "get$serialize", 2, 0, 1, 2],
+      }, "call$1", "get$serialize", 2, 0, 2, 4],
       unsupported$2: function(x, message) {
         throw H.wrapException(new P.UnsupportedError(H.S(message == null ? "Can't transmit:" : message) + " " + H.S(x)));
       },
@@ -2036,7 +2098,7 @@ var getKeys = function(obj){
           default:
             throw H.wrapException("couldn't deserialize: " + H.S(x));
         }
-      }, "call$1", "get$deserialize", 2, 0, 1, 2],
+      }, "call$1", "get$deserialize", 2, 0, 2, 4],
       deserializeArrayInPlace$1: function(x) {
         var t1, i, t2;
         t1 = J.getInterceptor$asx(x);
@@ -2183,6 +2245,15 @@ var getKeys = function(obj){
       if (receiver.date === void 0)
         receiver.date = new Date(receiver.millisecondsSinceEpoch);
       return receiver.date;
+    },
+    Primitives_getHours: function(receiver) {
+      return receiver.isUtc ? H.Primitives_lazyAsJsDate(receiver).getUTCHours() + 0 : H.Primitives_lazyAsJsDate(receiver).getHours() + 0;
+    },
+    Primitives_getMinutes: function(receiver) {
+      return receiver.isUtc ? H.Primitives_lazyAsJsDate(receiver).getUTCMinutes() + 0 : H.Primitives_lazyAsJsDate(receiver).getMinutes() + 0;
+    },
+    Primitives_getSeconds: function(receiver) {
+      return receiver.isUtc ? H.Primitives_lazyAsJsDate(receiver).getUTCSeconds() + 0 : H.Primitives_lazyAsJsDate(receiver).getSeconds() + 0;
     },
     Primitives_getProperty: function(object, key) {
       if (object == null || typeof object === "boolean" || typeof object === "number" || typeof object === "string")
@@ -2426,7 +2497,7 @@ var getKeys = function(obj){
         return H._callInIsolate(isolate, new H.invokeClosure_closure3(closure, arg1, arg2, arg3, arg4));
       else
         throw H.wrapException(P.Exception_Exception("Unsupported number of arguments for wrapped closure"));
-    }, null, null, 14, 0, null, 6, 7, 8, 9, 10, 11, 12],
+    }, null, null, 14, 0, null, 11, 12, 13, 14, 15, 16, 17],
     convertDartClosureToJS: function(closure, arity) {
       var $function;
       if (closure == null)
@@ -2774,6 +2845,9 @@ var getKeys = function(obj){
         if (!H.isSubtype(s[i], t[i]))
           return false;
       return true;
+    },
+    computeSignature: function(signature, context, contextName) {
+      return H.invokeOn(signature, context, H.getRuntimeTypeArguments(context, contextName));
     },
     isSubtype: function(s, t) {
       var t1, typeOfS, t2, typeOfT, substitution;
@@ -3170,7 +3244,7 @@ var getKeys = function(obj){
         }}
     },
     Primitives_functionNoSuchMethod_closure: {
-      "^": "Closure:6;__js_helper$_box_0,_captured_arguments_1,_captured_namedArgumentList_2",
+      "^": "Closure:8;__js_helper$_box_0,_captured_arguments_1,_captured_namedArgumentList_2",
       call$2: function($name, argument) {
         var t1 = this.__js_helper$_box_0;
         t1._captured_names_1 = t1._captured_names_1 + "$" + H.S($name);
@@ -3271,7 +3345,7 @@ var getKeys = function(obj){
       }
     },
     unwrapException_saveStackTrace: {
-      "^": "Closure:1;_captured_ex_0",
+      "^": "Closure:2;_captured_ex_0",
       call$1: function(error) {
         if (!!J.getInterceptor(error).$isError)
           if (error.$thrownJsError == null)
@@ -3742,10 +3816,10 @@ var getKeys = function(obj){
       $isMap: 1
     },
     JsLinkedHashMap_values_closure: {
-      "^": "Closure:1;_captured_this_0",
+      "^": "Closure:2;__js_helper$_captured_this_0",
       call$1: [function(each) {
-        return this._captured_this_0.$index(0, each);
-      }, null, null, 2, 0, null, 13, "call"]
+        return this.__js_helper$_captured_this_0.$index(0, each);
+      }, null, null, 2, 0, null, 18, "call"]
     },
     LinkedHashMapCell: {
       "^": "Object;hashMapCellKey<,hashMapCellValue@,_next<,_previous<"
@@ -3799,19 +3873,19 @@ var getKeys = function(obj){
       }
     },
     initHooks_closure: {
-      "^": "Closure:1;_captured_getTag_0",
+      "^": "Closure:2;_captured_getTag_0",
       call$1: function(o) {
         return this._captured_getTag_0(o);
       }
     },
     initHooks_closure0: {
-      "^": "Closure:7;_captured_getUnknownTag_1",
+      "^": "Closure:9;_captured_getUnknownTag_1",
       call$2: function(o, tag) {
         return this._captured_getUnknownTag_1(o, tag);
       }
     },
     initHooks_closure1: {
-      "^": "Closure:8;_captured_prototypeForTag_2",
+      "^": "Closure:10;_captured_prototypeForTag_2",
       call$1: function(tag) {
         return this._captured_prototypeForTag_2(tag);
       }
@@ -3990,14 +4064,34 @@ var getKeys = function(obj){
     _AsyncRun__scheduleImmediateJsOverride: [function(callback) {
       ++init.globalState.topEventLoop._activeJsAsyncCount;
       self.scheduleImmediate(H.convertDartClosureToJS(new P._AsyncRun__scheduleImmediateJsOverride_internalCallback(callback), 0));
-    }, "call$1", "async__AsyncRun__scheduleImmediateJsOverride$closure", 2, 0, 4],
+    }, "call$1", "async__AsyncRun__scheduleImmediateJsOverride$closure", 2, 0, 3],
     _AsyncRun__scheduleImmediateWithSetImmediate: [function(callback) {
       ++init.globalState.topEventLoop._activeJsAsyncCount;
       self.setImmediate(H.convertDartClosureToJS(new P._AsyncRun__scheduleImmediateWithSetImmediate_internalCallback(callback), 0));
-    }, "call$1", "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", 2, 0, 4],
+    }, "call$1", "async__AsyncRun__scheduleImmediateWithSetImmediate$closure", 2, 0, 3],
     _AsyncRun__scheduleImmediateWithTimer: [function(callback) {
       P.Timer__createTimer(C.Duration_0, callback);
-    }, "call$1", "async__AsyncRun__scheduleImmediateWithTimer$closure", 2, 0, 4],
+    }, "call$1", "async__AsyncRun__scheduleImmediateWithTimer$closure", 2, 0, 3],
+    _registerErrorHandler: function(errorHandler, zone) {
+      var t1 = H.getDynamicRuntimeType();
+      t1 = H.buildFunctionType(t1, [t1, t1])._isTest$1(errorHandler);
+      if (t1) {
+        zone.toString;
+        return errorHandler;
+      } else {
+        zone.toString;
+        return errorHandler;
+      }
+    },
+    Future_Future: function(computation, $T) {
+      var result = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [$T]);
+      P.Timer_Timer(C.Duration_0, new P.Future_Future_closure(computation, result));
+      return result;
+    },
+    _completeWithErrorCallback: function(result, error, stackTrace) {
+      $.Zone__current.toString;
+      result._completeError$2(error, stackTrace);
+    },
     _microtaskLoop: function() {
       var t1, t2;
       for (; t1 = $._nextCallback, t1 != null;) {
@@ -4021,7 +4115,7 @@ var getKeys = function(obj){
         if ($._nextCallback != null)
           $.$get$_AsyncRun_scheduleImmediateClosure().call$1(P.async___microtaskLoopEntry$closure());
       }
-    }, "call$0", "async___microtaskLoopEntry$closure", 0, 0, 2],
+    }, "call$0", "async___microtaskLoopEntry$closure", 0, 0, 1],
     _scheduleAsyncCallback: function(newEntry) {
       if ($._nextCallback == null) {
         $._lastCallback = newEntry;
@@ -4033,6 +4127,81 @@ var getKeys = function(obj){
         $._lastCallback = newEntry;
       }
     },
+    scheduleMicrotask: function(callback) {
+      var currentZone, t1;
+      currentZone = $.Zone__current;
+      if (C.C__RootZone === currentZone) {
+        P._rootScheduleMicrotask(null, null, C.C__RootZone, callback);
+        return;
+      }
+      currentZone.toString;
+      if (C.C__RootZone.get$errorZone() === currentZone) {
+        P._rootScheduleMicrotask(null, null, currentZone, callback);
+        return;
+      }
+      t1 = $.Zone__current;
+      P._rootScheduleMicrotask(null, null, t1, t1.bindCallback$2$runGuarded(callback, true));
+    },
+    StreamController_StreamController: function(onCancel, onListen, onPause, onResume, sync, $T) {
+      return sync ? H.setRuntimeTypeInfo(new P._SyncStreamController(null, 0, null, onListen, onPause, onResume, onCancel), [$T]) : H.setRuntimeTypeInfo(new P._AsyncStreamController(null, 0, null, onListen, onPause, onResume, onCancel), [$T]);
+    },
+    _runGuarded: function(notificationHandler) {
+      var result, e, s, exception, t1;
+      if (notificationHandler == null)
+        return;
+      try {
+        result = notificationHandler.call$0();
+        if (!!J.getInterceptor(result).$isFuture)
+          return result;
+        return;
+      } catch (exception) {
+        t1 = H.unwrapException(exception);
+        e = t1;
+        s = H.getTraceFromException(exception);
+        t1 = $.Zone__current;
+        t1.toString;
+        P._rootHandleUncaughtError(null, null, t1, e, s);
+      }
+    },
+    _nullErrorHandler: [function(error, stackTrace) {
+      var t1 = $.Zone__current;
+      t1.toString;
+      P._rootHandleUncaughtError(null, null, t1, error, stackTrace);
+    }, function(error) {
+      return P._nullErrorHandler(error, null);
+    }, "call$2", "call$1", "async___nullErrorHandler$closure", 2, 2, 4, 2, 0, 1],
+    _nullDoneHandler: [function() {
+    }, "call$0", "async___nullDoneHandler$closure", 0, 0, 1],
+    _runUserCode: function(userCode, onSuccess, onError) {
+      var e, s, replacement, error, stackTrace, exception, t1;
+      try {
+        onSuccess.call$1(userCode.call$0());
+      } catch (exception) {
+        t1 = H.unwrapException(exception);
+        e = t1;
+        s = H.getTraceFromException(exception);
+        $.Zone__current.toString;
+        replacement = null;
+        if (replacement == null)
+          onError.call$2(e, s);
+        else {
+          t1 = J.get$error$x(replacement);
+          error = t1;
+          stackTrace = replacement.get$stackTrace();
+          onError.call$2(error, stackTrace);
+        }
+      }
+    },
+    _cancelAndError: function(subscription, future, error, stackTrace) {
+      var cancelFuture = subscription.cancel$0();
+      if (!!J.getInterceptor(cancelFuture).$isFuture)
+        cancelFuture.whenComplete$1(new P._cancelAndError_closure(future, error, stackTrace));
+      else
+        future._completeError$2(error, stackTrace);
+    },
+    _cancelAndErrorClosure: function(subscription, future) {
+      return new P._cancelAndErrorClosure_closure(subscription, future);
+    },
     Timer_Timer: function(duration, callback) {
       var t1 = $.Zone__current;
       if (t1 === C.C__RootZone) {
@@ -4041,9 +4210,21 @@ var getKeys = function(obj){
       }
       return P.Timer__createTimer(duration, t1.bindCallback$2$runGuarded(callback, true));
     },
+    Timer_Timer$periodic: function(duration, callback) {
+      var t1 = $.Zone__current;
+      if (t1 === C.C__RootZone) {
+        t1.toString;
+        return P.Timer__createPeriodicTimer(duration, callback);
+      }
+      return P.Timer__createPeriodicTimer(duration, t1.bindUnaryCallback$2$runGuarded(callback, true));
+    },
     Timer__createTimer: function(duration, callback) {
       var milliseconds = C.JSInt_methods._tdivFast$1(duration._duration, 1000);
       return H.TimerImpl$(milliseconds < 0 ? 0 : milliseconds, callback);
+    },
+    Timer__createPeriodicTimer: function(duration, callback) {
+      var milliseconds = C.JSInt_methods._tdivFast$1(duration._duration, 1000);
+      return H.TimerImpl$periodic(milliseconds < 0 ? 0 : milliseconds, callback);
     },
     Zone__enter: function(zone) {
       var previous = $.Zone__current;
@@ -4084,23 +4265,55 @@ var getKeys = function(obj){
         $.Zone__current = old;
       }
     },
+    _rootRunUnary: function($self, $parent, zone, f, arg) {
+      var old, t1;
+      if ($.Zone__current === zone)
+        return f.call$1(arg);
+      old = P.Zone__enter(zone);
+      try {
+        t1 = f.call$1(arg);
+        return t1;
+      } finally {
+        $.Zone__current = old;
+      }
+    },
+    _rootRunBinary: function($self, $parent, zone, f, arg1, arg2) {
+      var old, t1;
+      if ($.Zone__current === zone)
+        return f.call$2(arg1, arg2);
+      old = P.Zone__enter(zone);
+      try {
+        t1 = f.call$2(arg1, arg2);
+        return t1;
+      } finally {
+        $.Zone__current = old;
+      }
+    },
+    _rootScheduleMicrotask: function($self, $parent, zone, f) {
+      var t1 = C.C__RootZone !== zone;
+      if (t1) {
+        f = zone.bindCallback$2$runGuarded(f, !(!t1 || C.C__RootZone.get$errorZone() === zone));
+        zone = C.C__RootZone;
+      }
+      P._scheduleAsyncCallback(new P._AsyncCallbackEntry(f, zone, null));
+    },
     _AsyncRun__initializeScheduleImmediate_internalCallback: {
-      "^": "Closure:1;_async$_box_0",
+      "^": "Closure:2;_box_0",
       call$1: [function(_) {
         var t1, f;
         H.leaveJsAsync();
-        t1 = this._async$_box_0;
+        t1 = this._box_0;
         f = t1._captured_storedCallback_0;
         t1._captured_storedCallback_0 = null;
         f.call$0();
-      }, null, null, 2, 0, null, 14, "call"]
+      }, null, null, 2, 0, null, 5, "call"]
     },
     _AsyncRun__initializeScheduleImmediate_closure: {
-      "^": "Closure:9;_async$_box_0,_captured_div_1,_captured_span_2",
+      "^": "Closure:11;_box_0,_captured_div_1,_captured_span_2",
       call$1: function(callback) {
         var t1, t2;
         ++init.globalState.topEventLoop._activeJsAsyncCount;
-        this._async$_box_0._captured_storedCallback_0 = callback;
+        this._box_0._captured_storedCallback_0 = callback;
         t1 = this._captured_div_1;
         t2 = this._captured_span_2;
         t1.firstChild ? t1.removeChild(t2) : t1.appendChild(t2);
@@ -4139,23 +4352,1217 @@ var getKeys = function(obj){
     Future: {
       "^": "Object;"
     },
+    Future_Future_closure: {
+      "^": "Closure:0;_captured_computation_0,_captured_result_1",
+      call$0: function() {
+        var e, s, exception, t1;
+        try {
+          this._captured_result_1._complete$1(this._captured_computation_0.call$0());
+        } catch (exception) {
+          t1 = H.unwrapException(exception);
+          e = t1;
+          s = H.getTraceFromException(exception);
+          P._completeWithErrorCallback(this._captured_result_1, e, s);
+        }
+      }
+    },
+    _FutureListener: {
+      "^": "Object;_nextListener@,result>,state,callback,errorCallback",
+      get$_zone: function() {
+        return this.result.get$_zone();
+      },
+      get$handlesValue: function() {
+        return (this.state & 1) !== 0;
+      },
+      get$hasErrorTest: function() {
+        return this.state === 6;
+      },
+      get$handlesComplete: function() {
+        return this.state === 8;
+      },
+      get$_onValue: function() {
+        return this.callback;
+      },
+      get$_onError: function() {
+        return this.errorCallback;
+      },
+      get$_errorTest: function() {
+        return this.callback;
+      },
+      get$_whenCompleteAction: function() {
+        return this.callback;
+      }
+    },
+    _Future: {
+      "^": "Object;_state,_zone<,_resultOrListeners",
+      get$_hasError: function() {
+        return this._state === 8;
+      },
+      set$_isChained: function(value) {
+        if (value)
+          this._state = 2;
+        else
+          this._state = 0;
+      },
+      then$2$onError: function(f, onError) {
+        var result, t1;
+        result = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [null]);
+        t1 = result._zone;
+        if (t1 !== C.C__RootZone) {
+          t1.toString;
+          if (onError != null)
+            onError = P._registerErrorHandler(onError, t1);
+        }
+        this._addListener$1(new P._FutureListener(null, result, onError == null ? 1 : 3, f, onError));
+        return result;
+      },
+      whenComplete$1: function(action) {
+        var t1, result;
+        t1 = $.Zone__current;
+        result = new P._Future(0, t1, null);
+        result.$builtinTypeInfo = this.$builtinTypeInfo;
+        if (t1 !== C.C__RootZone)
+          t1.toString;
+        this._addListener$1(new P._FutureListener(null, result, 8, action, null));
+        return result;
+      },
+      _markPendingCompletion$0: function() {
+        if (this._state !== 0)
+          throw H.wrapException(new P.StateError("Future already completed"));
+        this._state = 1;
+      },
+      get$_value: function() {
+        return this._resultOrListeners;
+      },
+      get$_error: function() {
+        return this._resultOrListeners;
+      },
+      _setValue$1: function(value) {
+        this._state = 4;
+        this._resultOrListeners = value;
+      },
+      _setErrorObject$1: function(error) {
+        this._state = 8;
+        this._resultOrListeners = error;
+      },
+      _setError$2: function(error, stackTrace) {
+        this._setErrorObject$1(new P.AsyncError(error, stackTrace));
+      },
+      _addListener$1: function(listener) {
+        var t1;
+        if (this._state >= 4) {
+          t1 = this._zone;
+          t1.toString;
+          P._rootScheduleMicrotask(null, null, t1, new P._Future__addListener_closure(this, listener));
+        } else {
+          listener._nextListener = this._resultOrListeners;
+          this._resultOrListeners = listener;
+        }
+      },
+      _removeListeners$0: function() {
+        var current, prev, next;
+        current = this._resultOrListeners;
+        this._resultOrListeners = null;
+        for (prev = null; current != null; prev = current, current = next) {
+          next = current.get$_nextListener();
+          current.set$_nextListener(prev);
+        }
+        return prev;
+      },
+      _complete$1: function(value) {
+        var t1, listeners;
+        t1 = J.getInterceptor(value);
+        if (!!t1.$isFuture)
+          if (!!t1.$is_Future)
+            P._Future__chainCoreFuture(value, this);
+          else
+            P._Future__chainForeignFuture(value, this);
+        else {
+          listeners = this._removeListeners$0();
+          this._setValue$1(value);
+          P._Future__propagateToListeners(this, listeners);
+        }
+      },
+      _completeWithValue$1: function(value) {
+        var listeners = this._removeListeners$0();
+        this._setValue$1(value);
+        P._Future__propagateToListeners(this, listeners);
+      },
+      _completeError$2: [function(error, stackTrace) {
+        var listeners = this._removeListeners$0();
+        this._setErrorObject$1(new P.AsyncError(error, stackTrace));
+        P._Future__propagateToListeners(this, listeners);
+      }, function(error) {
+        return this._completeError$2(error, null);
+      }, "_completeError$1", "call$2", "call$1", "get$_completeError", 2, 2, 4, 2, 0, 1],
+      _asyncComplete$1: function(value) {
+        var t1;
+        if (value == null)
+          ;
+        else {
+          t1 = J.getInterceptor(value);
+          if (!!t1.$isFuture) {
+            if (!!t1.$is_Future) {
+              t1 = value._state;
+              if (t1 >= 4 && t1 === 8) {
+                this._markPendingCompletion$0();
+                t1 = this._zone;
+                t1.toString;
+                P._rootScheduleMicrotask(null, null, t1, new P._Future__asyncComplete_closure(this, value));
+              } else
+                P._Future__chainCoreFuture(value, this);
+            } else
+              P._Future__chainForeignFuture(value, this);
+            return;
+          }
+        }
+        this._markPendingCompletion$0();
+        t1 = this._zone;
+        t1.toString;
+        P._rootScheduleMicrotask(null, null, t1, new P._Future__asyncComplete_closure0(this, value));
+      },
+      _asyncCompleteError$2: function(error, stackTrace) {
+        var t1;
+        this._markPendingCompletion$0();
+        t1 = this._zone;
+        t1.toString;
+        P._rootScheduleMicrotask(null, null, t1, new P._Future__asyncCompleteError_closure(this, error, stackTrace));
+      },
+      $isFuture: 1,
+      static: {_Future__chainForeignFuture: function(source, target) {
+          var e, s, exception, t1;
+          target.set$_isChained(true);
+          try {
+            source.then$2$onError(new P._Future__chainForeignFuture_closure(target), new P._Future__chainForeignFuture_closure0(target));
+          } catch (exception) {
+            t1 = H.unwrapException(exception);
+            e = t1;
+            s = H.getTraceFromException(exception);
+            P.scheduleMicrotask(new P._Future__chainForeignFuture_closure1(target, e, s));
+          }
+        }, _Future__chainCoreFuture: function(source, target) {
+          var listener;
+          target.set$_isChained(true);
+          listener = new P._FutureListener(null, target, 0, null, null);
+          if (source._state >= 4)
+            P._Future__propagateToListeners(source, listener);
+          else
+            source._addListener$1(listener);
+        }, _Future__propagateToListeners: function(source, listeners) {
+          var t1, t2, t3, hasError, asyncError, t4, listeners0, sourceValue, zone, oldZone, chainSource, result;
+          t1 = {};
+          t1._captured_source_4 = source;
+          for (t2 = source; true;) {
+            t3 = {};
+            hasError = t2.get$_hasError();
+            if (listeners == null) {
+              if (hasError) {
+                asyncError = t1._captured_source_4.get$_error();
+                t2 = t1._captured_source_4.get$_zone();
+                t3 = J.get$error$x(asyncError);
+                t4 = asyncError.get$stackTrace();
+                t2.toString;
+                P._rootHandleUncaughtError(null, null, t2, t3, t4);
+              }
+              return;
+            }
+            for (; listeners.get$_nextListener() != null; listeners = listeners0) {
+              listeners0 = listeners.get$_nextListener();
+              listeners.set$_nextListener(null);
+              P._Future__propagateToListeners(t1._captured_source_4, listeners);
+            }
+            t3._captured_listenerHasValue_1 = true;
+            sourceValue = hasError ? null : t1._captured_source_4.get$_value();
+            t3._captured_listenerValueOrError_2 = sourceValue;
+            t3._captured_isPropagationAborted_3 = false;
+            t2 = !hasError;
+            if (!t2 || listeners.get$handlesValue() || listeners.get$handlesComplete()) {
+              zone = listeners.get$_zone();
+              if (hasError) {
+                t4 = t1._captured_source_4.get$_zone();
+                t4.toString;
+                if (t4 == null ? zone != null : t4 !== zone) {
+                  t4 = t4.get$errorZone();
+                  zone.toString;
+                  t4 = t4 === zone;
+                } else
+                  t4 = true;
+                t4 = !t4;
+              } else
+                t4 = false;
+              if (t4) {
+                asyncError = t1._captured_source_4.get$_error();
+                t2 = t1._captured_source_4.get$_zone();
+                t3 = J.get$error$x(asyncError);
+                t4 = asyncError.get$stackTrace();
+                t2.toString;
+                P._rootHandleUncaughtError(null, null, t2, t3, t4);
+                return;
+              }
+              oldZone = $.Zone__current;
+              if (oldZone == null ? zone != null : oldZone !== zone)
+                $.Zone__current = zone;
+              else
+                oldZone = null;
+              if (t2) {
+                if (listeners.get$handlesValue())
+                  t3._captured_listenerHasValue_1 = new P._Future__propagateToListeners_handleValueCallback(t3, listeners, sourceValue, zone).call$0();
+              } else
+                new P._Future__propagateToListeners_handleError(t1, t3, listeners, zone).call$0();
+              if (listeners.get$handlesComplete())
+                new P._Future__propagateToListeners_handleWhenCompleteCallback(t1, t3, hasError, listeners, zone).call$0();
+              if (oldZone != null)
+                $.Zone__current = oldZone;
+              if (t3._captured_isPropagationAborted_3)
+                return;
+              if (t3._captured_listenerHasValue_1 === true) {
+                t2 = t3._captured_listenerValueOrError_2;
+                t2 = (sourceValue == null ? t2 != null : sourceValue !== t2) && !!J.getInterceptor(t2).$isFuture;
+              } else
+                t2 = false;
+              if (t2) {
+                chainSource = t3._captured_listenerValueOrError_2;
+                result = J.get$result$x(listeners);
+                if (chainSource instanceof P._Future)
+                  if (chainSource._state >= 4) {
+                    result.set$_isChained(true);
+                    t1._captured_source_4 = chainSource;
+                    listeners = new P._FutureListener(null, result, 0, null, null);
+                    t2 = chainSource;
+                    continue;
+                  } else
+                    P._Future__chainCoreFuture(chainSource, result);
+                else
+                  P._Future__chainForeignFuture(chainSource, result);
+                return;
+              }
+            }
+            result = J.get$result$x(listeners);
+            listeners = result._removeListeners$0();
+            t2 = t3._captured_listenerHasValue_1;
+            t3 = t3._captured_listenerValueOrError_2;
+            if (t2 === true)
+              result._setValue$1(t3);
+            else
+              result._setErrorObject$1(t3);
+            t1._captured_source_4 = result;
+            t2 = result;
+          }
+        }}
+    },
+    _Future__addListener_closure: {
+      "^": "Closure:0;_async$_captured_this_0,_captured_listener_1",
+      call$0: function() {
+        P._Future__propagateToListeners(this._async$_captured_this_0, this._captured_listener_1);
+      }
+    },
+    _Future__chainForeignFuture_closure: {
+      "^": "Closure:2;_captured_target_0",
+      call$1: [function(value) {
+        this._captured_target_0._completeWithValue$1(value);
+      }, null, null, 2, 0, null, 19, "call"]
+    },
+    _Future__chainForeignFuture_closure0: {
+      "^": "Closure:5;_captured_target_1",
+      call$2: [function(error, stackTrace) {
+        this._captured_target_1._completeError$2(error, stackTrace);
+      }, function(error) {
+        return this.call$2(error, null);
+      }, "call$1", null, null, null, 2, 2, null, 2, 0, 1, "call"]
+    },
+    _Future__chainForeignFuture_closure1: {
+      "^": "Closure:0;_captured_target_2,_captured_e_3,_captured_s_4",
+      call$0: [function() {
+        this._captured_target_2._completeError$2(this._captured_e_3, this._captured_s_4);
+      }, null, null, 0, 0, null, "call"]
+    },
+    _Future__asyncComplete_closure: {
+      "^": "Closure:0;_async$_captured_this_0,_captured_coreFuture_1",
+      call$0: function() {
+        P._Future__chainCoreFuture(this._captured_coreFuture_1, this._async$_captured_this_0);
+      }
+    },
+    _Future__asyncComplete_closure0: {
+      "^": "Closure:0;_async$_captured_this_2,_captured_value_3",
+      call$0: function() {
+        this._async$_captured_this_2._completeWithValue$1(this._captured_value_3);
+      }
+    },
+    _Future__asyncCompleteError_closure: {
+      "^": "Closure:0;_async$_captured_this_0,_captured_error_1,_captured_stackTrace_2",
+      call$0: function() {
+        this._async$_captured_this_0._completeError$2(this._captured_error_1, this._captured_stackTrace_2);
+      }
+    },
+    _Future__propagateToListeners_handleValueCallback: {
+      "^": "Closure:12;_box_1,_captured_listener_3,_captured_sourceValue_4,_captured_zone_5",
+      call$0: function() {
+        var e, s, exception, t1;
+        try {
+          this._box_1._captured_listenerValueOrError_2 = this._captured_zone_5.runUnary$2(this._captured_listener_3.get$_onValue(), this._captured_sourceValue_4);
+          return true;
+        } catch (exception) {
+          t1 = H.unwrapException(exception);
+          e = t1;
+          s = H.getTraceFromException(exception);
+          this._box_1._captured_listenerValueOrError_2 = new P.AsyncError(e, s);
+          return false;
+        }
+      }
+    },
+    _Future__propagateToListeners_handleError: {
+      "^": "Closure:1;_box_2,_box_1,_captured_listener_6,_captured_zone_7",
+      call$0: function() {
+        var asyncError, matchesTest, test, e, s, errorCallback, e0, s0, t1, exception, t2, listenerValueOrError, t3, t4;
+        asyncError = this._box_2._captured_source_4.get$_error();
+        matchesTest = true;
+        t1 = this._captured_listener_6;
+        if (t1.get$hasErrorTest()) {
+          test = t1.get$_errorTest();
+          try {
+            matchesTest = this._captured_zone_7.runUnary$2(test, J.get$error$x(asyncError));
+          } catch (exception) {
+            t1 = H.unwrapException(exception);
+            e = t1;
+            s = H.getTraceFromException(exception);
+            t1 = J.get$error$x(asyncError);
+            t2 = e;
+            listenerValueOrError = (t1 == null ? t2 == null : t1 === t2) ? asyncError : new P.AsyncError(e, s);
+            t1 = this._box_1;
+            t1._captured_listenerValueOrError_2 = listenerValueOrError;
+            t1._captured_listenerHasValue_1 = false;
+            return;
+          }
+        }
+        errorCallback = t1.get$_onError();
+        if (matchesTest === true && errorCallback != null) {
+          try {
+            t1 = errorCallback;
+            t2 = H.getDynamicRuntimeType();
+            t2 = H.buildFunctionType(t2, [t2, t2])._isTest$1(t1);
+            t3 = this._captured_zone_7;
+            t4 = this._box_1;
+            if (t2)
+              t4._captured_listenerValueOrError_2 = t3.runBinary$3(errorCallback, J.get$error$x(asyncError), asyncError.get$stackTrace());
+            else
+              t4._captured_listenerValueOrError_2 = t3.runUnary$2(errorCallback, J.get$error$x(asyncError));
+          } catch (exception) {
+            t1 = H.unwrapException(exception);
+            e0 = t1;
+            s0 = H.getTraceFromException(exception);
+            t1 = J.get$error$x(asyncError);
+            t2 = e0;
+            listenerValueOrError = (t1 == null ? t2 == null : t1 === t2) ? asyncError : new P.AsyncError(e0, s0);
+            t1 = this._box_1;
+            t1._captured_listenerValueOrError_2 = listenerValueOrError;
+            t1._captured_listenerHasValue_1 = false;
+            return;
+          }
+          this._box_1._captured_listenerHasValue_1 = true;
+        } else {
+          t1 = this._box_1;
+          t1._captured_listenerValueOrError_2 = asyncError;
+          t1._captured_listenerHasValue_1 = false;
+        }
+      }
+    },
+    _Future__propagateToListeners_handleWhenCompleteCallback: {
+      "^": "Closure:1;_box_2,_box_1,_captured_hasError_8,_captured_listener_9,_captured_zone_10",
+      call$0: function() {
+        var t1, e, s, completeResult, t2, exception, result;
+        t1 = {};
+        t1._captured_completeResult_0 = null;
+        try {
+          completeResult = this._captured_zone_10.run$1(this._captured_listener_9.get$_whenCompleteAction());
+          t1._captured_completeResult_0 = completeResult;
+          t2 = completeResult;
+        } catch (exception) {
+          t1 = H.unwrapException(exception);
+          e = t1;
+          s = H.getTraceFromException(exception);
+          if (this._captured_hasError_8) {
+            t1 = J.get$error$x(this._box_2._captured_source_4.get$_error());
+            t2 = e;
+            t2 = t1 == null ? t2 == null : t1 === t2;
+            t1 = t2;
+          } else
+            t1 = false;
+          t2 = this._box_1;
+          if (t1)
+            t2._captured_listenerValueOrError_2 = this._box_2._captured_source_4.get$_error();
+          else
+            t2._captured_listenerValueOrError_2 = new P.AsyncError(e, s);
+          t2._captured_listenerHasValue_1 = false;
+          return;
+        }
+        if (!!J.getInterceptor(t2).$isFuture) {
+          result = J.get$result$x(this._captured_listener_9);
+          result.set$_isChained(true);
+          this._box_1._captured_isPropagationAborted_3 = true;
+          t2.then$2$onError(new P._Future__propagateToListeners_handleWhenCompleteCallback_closure(this._box_2, result), new P._Future__propagateToListeners_handleWhenCompleteCallback_closure0(t1, result));
+        }
+      }
+    },
+    _Future__propagateToListeners_handleWhenCompleteCallback_closure: {
+      "^": "Closure:2;_box_2,_captured_result_11",
+      call$1: [function(ignored) {
+        P._Future__propagateToListeners(this._box_2._captured_source_4, new P._FutureListener(null, this._captured_result_11, 0, null, null));
+      }, null, null, 2, 0, null, 20, "call"]
+    },
+    _Future__propagateToListeners_handleWhenCompleteCallback_closure0: {
+      "^": "Closure:5;_box_0,_captured_result_12",
+      call$2: [function(error, stackTrace) {
+        var t1, completeResult;
+        t1 = this._box_0;
+        if (!(t1._captured_completeResult_0 instanceof P._Future)) {
+          completeResult = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [null]);
+          t1._captured_completeResult_0 = completeResult;
+          completeResult._setError$2(error, stackTrace);
+        }
+        P._Future__propagateToListeners(t1._captured_completeResult_0, new P._FutureListener(null, this._captured_result_12, 0, null, null));
+      }, function(error) {
+        return this.call$2(error, null);
+      }, "call$1", null, null, null, 2, 2, null, 2, 0, 1, "call"]
+    },
     _AsyncCallbackEntry: {
       "^": "Object;callback,zone,next",
       callback$0: function() {
         return this.callback.call$0();
       }
     },
+    Stream: {
+      "^": "Object;",
+      map$1: function(_, convert) {
+        return H.setRuntimeTypeInfo(new P._MapStream(convert, this), [H.getRuntimeTypeArgument(this, "Stream", 0), null]);
+      },
+      forEach$1: function(_, action) {
+        var t1, future;
+        t1 = {};
+        future = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [null]);
+        t1._captured_subscription_0 = null;
+        t1._captured_subscription_0 = this.listen$4$cancelOnError$onDone$onError(new P.Stream_forEach_closure(t1, this, action, future), true, new P.Stream_forEach_closure0(future), future.get$_completeError());
+        return future;
+      },
+      get$length: function(_) {
+        var t1, future;
+        t1 = {};
+        future = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [P.$int]);
+        t1._captured_count_0 = 0;
+        this.listen$4$cancelOnError$onDone$onError(new P.Stream_length_closure(t1), true, new P.Stream_length_closure0(t1, future), future.get$_completeError());
+        return future;
+      },
+      toList$0: function(_) {
+        var result, future;
+        result = H.setRuntimeTypeInfo([], [H.getRuntimeTypeArgument(this, "Stream", 0)]);
+        future = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [[P.List, H.getRuntimeTypeArgument(this, "Stream", 0)]]);
+        this.listen$4$cancelOnError$onDone$onError(new P.Stream_toList_closure(this, result), true, new P.Stream_toList_closure0(result, future), future.get$_completeError());
+        return future;
+      }
+    },
+    Stream_forEach_closure: {
+      "^": "Closure;_box_0,_async$_captured_this_1,_captured_action_2,_captured_future_3",
+      call$1: [function(element) {
+        P._runUserCode(new P.Stream_forEach__closure(this._captured_action_2, element), new P.Stream_forEach__closure0(), P._cancelAndErrorClosure(this._box_0._captured_subscription_0, this._captured_future_3));
+      }, null, null, 2, 0, null, 21, "call"],
+      $signature: function() {
+        return H.computeSignature(function(T) {
+          return {func: 1, args: [T]};
+        }, this._async$_captured_this_1, "Stream");
+      }
+    },
+    Stream_forEach__closure: {
+      "^": "Closure:0;_captured_action_4,_captured_element_5",
+      call$0: function() {
+        return this._captured_action_4.call$1(this._captured_element_5);
+      }
+    },
+    Stream_forEach__closure0: {
+      "^": "Closure:2;",
+      call$1: function(_) {
+      }
+    },
+    Stream_forEach_closure0: {
+      "^": "Closure:0;_captured_future_6",
+      call$0: [function() {
+        this._captured_future_6._complete$1(null);
+      }, null, null, 0, 0, null, "call"]
+    },
+    Stream_length_closure: {
+      "^": "Closure:2;_box_0",
+      call$1: [function(_) {
+        ++this._box_0._captured_count_0;
+      }, null, null, 2, 0, null, 5, "call"]
+    },
+    Stream_length_closure0: {
+      "^": "Closure:0;_box_0,_captured_future_1",
+      call$0: [function() {
+        this._captured_future_1._complete$1(this._box_0._captured_count_0);
+      }, null, null, 0, 0, null, "call"]
+    },
+    Stream_toList_closure: {
+      "^": "Closure;_async$_captured_this_0,_captured_result_1",
+      call$1: [function(data) {
+        this._captured_result_1.push(data);
+      }, null, null, 2, 0, null, 6, "call"],
+      $signature: function() {
+        return H.computeSignature(function(T) {
+          return {func: 1, args: [T]};
+        }, this._async$_captured_this_0, "Stream");
+      }
+    },
+    Stream_toList_closure0: {
+      "^": "Closure:0;_captured_result_2,_captured_future_3",
+      call$0: [function() {
+        this._captured_future_3._complete$1(this._captured_result_2);
+      }, null, null, 0, 0, null, "call"]
+    },
     StreamSubscription: {
       "^": "Object;"
+    },
+    _StreamController: {
+      "^": "Object;",
+      get$isPaused: function() {
+        var t1 = this._state;
+        return (t1 & 1) !== 0 ? this.get$_subscription().get$_isInputPaused() : (t1 & 2) === 0;
+      },
+      get$_pendingEvents: function() {
+        if ((this._state & 8) === 0)
+          return this._varData;
+        return this._varData.get$varData();
+      },
+      _ensurePendingEvents$0: function() {
+        var t1, state;
+        if ((this._state & 8) === 0) {
+          t1 = this._varData;
+          if (t1 == null) {
+            t1 = new P._StreamImplEvents(null, null, 0);
+            this._varData = t1;
+          }
+          return t1;
+        }
+        state = this._varData;
+        state.get$varData();
+        return state.get$varData();
+      },
+      get$_subscription: function() {
+        if ((this._state & 8) !== 0)
+          return this._varData.get$varData();
+        return this._varData;
+      },
+      _badEventState$0: function() {
+        if ((this._state & 4) !== 0)
+          return new P.StateError("Cannot add event after closing");
+        return new P.StateError("Cannot add event while adding a stream");
+      },
+      _async$_add$1: function(value) {
+        var t1 = this._state;
+        if ((t1 & 1) !== 0)
+          this._sendData$1(value);
+        else if ((t1 & 3) === 0)
+          this._ensurePendingEvents$0().add$1(0, new P._DelayedData(value, null));
+      },
+      _addError$2: function(error, stackTrace) {
+        var t1 = this._state;
+        if ((t1 & 1) !== 0)
+          this._sendError$2(error, stackTrace);
+        else if ((t1 & 3) === 0)
+          this._ensurePendingEvents$0().add$1(0, new P._DelayedError(error, stackTrace, null));
+      },
+      _subscribe$4: function(onData, onError, onDone, cancelOnError) {
+        var t1, subscription, pendingEvents, addState;
+        if ((this._state & 3) !== 0)
+          throw H.wrapException(new P.StateError("Stream has already been listened to."));
+        t1 = $.Zone__current;
+        subscription = new P._ControllerSubscription(this, null, null, null, t1, cancelOnError ? 1 : 0, null, null);
+        subscription.$builtinTypeInfo = this.$builtinTypeInfo;
+        subscription._BufferingStreamSubscription$4(onData, onError, onDone, cancelOnError);
+        pendingEvents = this.get$_pendingEvents();
+        t1 = this._state |= 1;
+        if ((t1 & 8) !== 0) {
+          addState = this._varData;
+          addState.set$varData(subscription);
+          addState.resume$0();
+        } else
+          this._varData = subscription;
+        subscription._setPendingEvents$1(pendingEvents);
+        subscription._guardCallback$1(new P._StreamController__subscribe_closure(this));
+        return subscription;
+      },
+      _recordCancel$1: function(subscription) {
+        var result, e, s, exception, t1, result0;
+        result = null;
+        if ((this._state & 8) !== 0)
+          result = this._varData.cancel$0();
+        this._varData = null;
+        this._state = this._state & 4294967286 | 2;
+        if (result == null)
+          try {
+            result = this._onCancel$0();
+          } catch (exception) {
+            t1 = H.unwrapException(exception);
+            e = t1;
+            s = H.getTraceFromException(exception);
+            result0 = H.setRuntimeTypeInfo(new P._Future(0, $.Zone__current, null), [null]);
+            result0._asyncCompleteError$2(e, s);
+            result = result0;
+          }
+        else
+          result = result.whenComplete$1(this._onCancel);
+        t1 = new P._StreamController__recordCancel_complete(this);
+        if (result != null)
+          result = result.whenComplete$1(t1);
+        else
+          t1.call$0();
+        return result;
+      },
+      _onCancel$0: function() {
+        return this._onCancel.call$0();
+      }
+    },
+    _StreamController__subscribe_closure: {
+      "^": "Closure:0;_async$_captured_this_0",
+      call$0: function() {
+        P._runGuarded(this._async$_captured_this_0._onListen);
+      }
+    },
+    _StreamController__recordCancel_complete: {
+      "^": "Closure:1;_async$_captured_this_0",
+      call$0: [function() {
+        var t1 = this._async$_captured_this_0._doneFuture;
+        if (t1 != null && t1._state === 0)
+          t1._asyncComplete$1(null);
+      }, null, null, 0, 0, null, "call"]
+    },
+    _SyncStreamControllerDispatch: {
+      "^": "Object;",
+      _sendData$1: function(data) {
+        this.get$_subscription()._async$_add$1(data);
+      },
+      _sendError$2: function(error, stackTrace) {
+        this.get$_subscription()._addError$2(error, stackTrace);
+      }
+    },
+    _AsyncStreamControllerDispatch: {
+      "^": "Object;",
+      _sendData$1: function(data) {
+        this.get$_subscription()._addPending$1(new P._DelayedData(data, null));
+      },
+      _sendError$2: function(error, stackTrace) {
+        this.get$_subscription()._addPending$1(new P._DelayedError(error, stackTrace, null));
+      }
+    },
+    _AsyncStreamController: {
+      "^": "_StreamController+_AsyncStreamControllerDispatch;_varData,_state,_doneFuture,_onListen,_onPause,_onResume,_onCancel"
+    },
+    _SyncStreamController: {
+      "^": "_StreamController+_SyncStreamControllerDispatch;_varData,_state,_doneFuture,_onListen,_onPause,_onResume,_onCancel"
+    },
+    _ControllerStream: {
+      "^": "_StreamImpl;_controller",
+      _createSubscription$4: function(onData, onError, onDone, cancelOnError) {
+        return this._controller._subscribe$4(onData, onError, onDone, cancelOnError);
+      },
+      get$hashCode: function(_) {
+        return (H.Primitives_objectHashCode(this._controller) ^ 892482866) >>> 0;
+      },
+      $eq: function(_, other) {
+        if (other == null)
+          return false;
+        if (this === other)
+          return true;
+        if (!(other instanceof P._ControllerStream))
+          return false;
+        return other._controller === this._controller;
+      }
+    },
+    _ControllerSubscription: {
+      "^": "_BufferingStreamSubscription;_controller,_onData,_onError,_onDone,_zone,_state,_cancelFuture,_pending",
+      _onCancel$0: function() {
+        return this._controller._recordCancel$1(this);
+      },
+      _onPause$0: [function() {
+        var t1 = this._controller;
+        if ((t1._state & 8) !== 0)
+          t1._varData.pause$0(0);
+        P._runGuarded(t1._onPause);
+      }, "call$0", "get$_onPause", 0, 0, 1],
+      _onResume$0: [function() {
+        var t1 = this._controller;
+        if ((t1._state & 8) !== 0)
+          t1._varData.resume$0();
+        P._runGuarded(t1._onResume);
+      }, "call$0", "get$_onResume", 0, 0, 1]
     },
     _EventSink: {
       "^": "Object;"
     },
+    _BufferingStreamSubscription: {
+      "^": "Object;_onData,_onError<,_onDone,_zone<,_state,_cancelFuture,_pending",
+      _setPendingEvents$1: function(pendingEvents) {
+        if (pendingEvents == null)
+          return;
+        this._pending = pendingEvents;
+        if (!pendingEvents.get$isEmpty(pendingEvents)) {
+          this._state = (this._state | 64) >>> 0;
+          this._pending.schedule$1(this);
+        }
+      },
+      pause$1: function(_, resumeSignal) {
+        var t1 = this._state;
+        if ((t1 & 8) !== 0)
+          return;
+        this._state = (t1 + 128 | 4) >>> 0;
+        if (t1 < 128 && this._pending != null)
+          this._pending.cancelSchedule$0();
+        if ((t1 & 4) === 0 && (this._state & 32) === 0)
+          this._guardCallback$1(this.get$_onPause());
+      },
+      pause$0: function($receiver) {
+        return this.pause$1($receiver, null);
+      },
+      resume$0: function() {
+        var t1 = this._state;
+        if ((t1 & 8) !== 0)
+          return;
+        if (t1 >= 128) {
+          t1 -= 128;
+          this._state = t1;
+          if (t1 < 128) {
+            if ((t1 & 64) !== 0) {
+              t1 = this._pending;
+              t1 = !t1.get$isEmpty(t1);
+            } else
+              t1 = false;
+            if (t1)
+              this._pending.schedule$1(this);
+            else {
+              t1 = (this._state & 4294967291) >>> 0;
+              this._state = t1;
+              if ((t1 & 32) === 0)
+                this._guardCallback$1(this.get$_onResume());
+            }
+          }
+        }
+      },
+      cancel$0: function() {
+        var t1 = (this._state & 4294967279) >>> 0;
+        this._state = t1;
+        if ((t1 & 8) !== 0)
+          return this._cancelFuture;
+        this._cancel$0();
+        return this._cancelFuture;
+      },
+      get$_isInputPaused: function() {
+        return (this._state & 4) !== 0;
+      },
+      get$isPaused: function() {
+        return this._state >= 128;
+      },
+      _cancel$0: function() {
+        var t1 = (this._state | 8) >>> 0;
+        this._state = t1;
+        if ((t1 & 64) !== 0)
+          this._pending.cancelSchedule$0();
+        if ((this._state & 32) === 0)
+          this._pending = null;
+        this._cancelFuture = this._onCancel$0();
+      },
+      _async$_add$1: ["super$_BufferingStreamSubscription$_add", function(data) {
+        var t1 = this._state;
+        if ((t1 & 8) !== 0)
+          return;
+        if (t1 < 32)
+          this._sendData$1(data);
+        else
+          this._addPending$1(new P._DelayedData(data, null));
+      }],
+      _addError$2: ["super$_BufferingStreamSubscription$_addError", function(error, stackTrace) {
+        var t1 = this._state;
+        if ((t1 & 8) !== 0)
+          return;
+        if (t1 < 32)
+          this._sendError$2(error, stackTrace);
+        else
+          this._addPending$1(new P._DelayedError(error, stackTrace, null));
+      }],
+      _close$0: function() {
+        var t1 = this._state;
+        if ((t1 & 8) !== 0)
+          return;
+        t1 = (t1 | 2) >>> 0;
+        this._state = t1;
+        if (t1 < 32)
+          this._sendDone$0();
+        else
+          this._addPending$1(C.C__DelayedDone);
+      },
+      _onPause$0: [function() {
+      }, "call$0", "get$_onPause", 0, 0, 1],
+      _onResume$0: [function() {
+      }, "call$0", "get$_onResume", 0, 0, 1],
+      _onCancel$0: function() {
+        return;
+      },
+      _addPending$1: function($event) {
+        var pending, t1;
+        pending = this._pending;
+        if (pending == null) {
+          pending = new P._StreamImplEvents(null, null, 0);
+          this._pending = pending;
+        }
+        pending.add$1(0, $event);
+        t1 = this._state;
+        if ((t1 & 64) === 0) {
+          t1 = (t1 | 64) >>> 0;
+          this._state = t1;
+          if (t1 < 128)
+            this._pending.schedule$1(this);
+        }
+      },
+      _sendData$1: function(data) {
+        var t1 = this._state;
+        this._state = (t1 | 32) >>> 0;
+        this._zone.runUnaryGuarded$2(this._onData, data);
+        this._state = (this._state & 4294967263) >>> 0;
+        this._checkState$1((t1 & 4) !== 0);
+      },
+      _sendError$2: function(error, stackTrace) {
+        var t1, t2;
+        t1 = this._state;
+        t2 = new P._BufferingStreamSubscription__sendError_sendError(this, error, stackTrace);
+        if ((t1 & 1) !== 0) {
+          this._state = (t1 | 16) >>> 0;
+          this._cancel$0();
+          t1 = this._cancelFuture;
+          if (!!J.getInterceptor(t1).$isFuture)
+            t1.whenComplete$1(t2);
+          else
+            t2.call$0();
+        } else {
+          t2.call$0();
+          this._checkState$1((t1 & 4) !== 0);
+        }
+      },
+      _sendDone$0: function() {
+        var t1, t2;
+        t1 = new P._BufferingStreamSubscription__sendDone_sendDone(this);
+        this._cancel$0();
+        this._state = (this._state | 16) >>> 0;
+        t2 = this._cancelFuture;
+        if (!!J.getInterceptor(t2).$isFuture)
+          t2.whenComplete$1(t1);
+        else
+          t1.call$0();
+      },
+      _guardCallback$1: function(callback) {
+        var t1 = this._state;
+        this._state = (t1 | 32) >>> 0;
+        callback.call$0();
+        this._state = (this._state & 4294967263) >>> 0;
+        this._checkState$1((t1 & 4) !== 0);
+      },
+      _checkState$1: function(wasInputPaused) {
+        var t1, isInputPaused;
+        if ((this._state & 64) !== 0) {
+          t1 = this._pending;
+          t1 = t1.get$isEmpty(t1);
+        } else
+          t1 = false;
+        if (t1) {
+          t1 = (this._state & 4294967231) >>> 0;
+          this._state = t1;
+          if ((t1 & 4) !== 0)
+            if (t1 < 128) {
+              t1 = this._pending;
+              t1 = t1 == null || t1.get$isEmpty(t1);
+            } else
+              t1 = false;
+          else
+            t1 = false;
+          if (t1)
+            this._state = (this._state & 4294967291) >>> 0;
+        }
+        for (; true; wasInputPaused = isInputPaused) {
+          t1 = this._state;
+          if ((t1 & 8) !== 0) {
+            this._pending = null;
+            return;
+          }
+          isInputPaused = (t1 & 4) !== 0;
+          if (wasInputPaused === isInputPaused)
+            break;
+          this._state = (t1 ^ 32) >>> 0;
+          if (isInputPaused)
+            this._onPause$0();
+          else
+            this._onResume$0();
+          this._state = (this._state & 4294967263) >>> 0;
+        }
+        t1 = this._state;
+        if ((t1 & 64) !== 0 && t1 < 128)
+          this._pending.schedule$1(this);
+      },
+      _BufferingStreamSubscription$4: function(onData, onError, onDone, cancelOnError) {
+        var t1 = this._zone;
+        t1.toString;
+        this._onData = onData;
+        this._onError = P._registerErrorHandler(onError == null ? P.async___nullErrorHandler$closure() : onError, t1);
+        this._onDone = onDone == null ? P.async___nullDoneHandler$closure() : onDone;
+      },
+      static: {_BufferingStreamSubscription$: function(onData, onError, onDone, cancelOnError) {
+          var t1 = $.Zone__current;
+          t1 = new P._BufferingStreamSubscription(null, null, null, t1, cancelOnError ? 1 : 0, null, null);
+          t1._BufferingStreamSubscription$4(onData, onError, onDone, cancelOnError);
+          return t1;
+        }}
+    },
+    _BufferingStreamSubscription__sendError_sendError: {
+      "^": "Closure:1;_async$_captured_this_0,_captured_error_1,_captured_stackTrace_2",
+      call$0: [function() {
+        var t1, t2, t3, t4, t5, t6;
+        t1 = this._async$_captured_this_0;
+        t2 = t1._state;
+        if ((t2 & 8) !== 0 && (t2 & 16) === 0)
+          return;
+        t1._state = (t2 | 32) >>> 0;
+        t2 = t1._onError;
+        t3 = H.getDynamicRuntimeType();
+        t3 = H.buildFunctionType(t3, [t3, t3])._isTest$1(t2);
+        t4 = t1._zone;
+        t5 = this._captured_error_1;
+        t6 = t1._onError;
+        if (t3)
+          t4.runBinaryGuarded$3(t6, t5, this._captured_stackTrace_2);
+        else
+          t4.runUnaryGuarded$2(t6, t5);
+        t1._state = (t1._state & 4294967263) >>> 0;
+      }, null, null, 0, 0, null, "call"]
+    },
+    _BufferingStreamSubscription__sendDone_sendDone: {
+      "^": "Closure:1;_async$_captured_this_0",
+      call$0: [function() {
+        var t1, t2;
+        t1 = this._async$_captured_this_0;
+        t2 = t1._state;
+        if ((t2 & 16) === 0)
+          return;
+        t1._state = (t2 | 42) >>> 0;
+        t1._zone.runGuarded$1(t1._onDone);
+        t1._state = (t1._state & 4294967263) >>> 0;
+      }, null, null, 0, 0, null, "call"]
+    },
+    _StreamImpl: {
+      "^": "Stream;",
+      listen$4$cancelOnError$onDone$onError: function(onData, cancelOnError, onDone, onError) {
+        return this._createSubscription$4(onData, onError, onDone, true === cancelOnError);
+      },
+      listen$1: function(onData) {
+        return this.listen$4$cancelOnError$onDone$onError(onData, null, null, null);
+      },
+      listen$3$onDone$onError: function(onData, onDone, onError) {
+        return this.listen$4$cancelOnError$onDone$onError(onData, null, onDone, onError);
+      },
+      _createSubscription$4: function(onData, onError, onDone, cancelOnError) {
+        return P._BufferingStreamSubscription$(onData, onError, onDone, cancelOnError);
+      }
+    },
     _DelayedEvent: {
+      "^": "Object;next@"
+    },
+    _DelayedData: {
+      "^": "_DelayedEvent;value>,next",
+      perform$1: function(dispatch) {
+        dispatch._sendData$1(this.value);
+      }
+    },
+    _DelayedError: {
+      "^": "_DelayedEvent;error>,stackTrace<,next",
+      perform$1: function(dispatch) {
+        dispatch._sendError$2(this.error, this.stackTrace);
+      }
+    },
+    _DelayedDone: {
+      "^": "Object;",
+      perform$1: function(dispatch) {
+        dispatch._sendDone$0();
+      },
+      get$next: function() {
+        return;
+      },
+      set$next: function(_) {
+        throw H.wrapException(new P.StateError("No events after a done."));
+      }
+    },
+    _PendingEvents: {
+      "^": "Object;",
+      schedule$1: function(dispatch) {
+        var t1 = this._state;
+        if (t1 === 1)
+          return;
+        if (t1 >= 1) {
+          this._state = 1;
+          return;
+        }
+        P.scheduleMicrotask(new P._PendingEvents_schedule_closure(this, dispatch));
+        this._state = 1;
+      },
+      cancelSchedule$0: function() {
+        if (this._state === 1)
+          this._state = 3;
+      }
+    },
+    _PendingEvents_schedule_closure: {
+      "^": "Closure:0;_async$_captured_this_0,_captured_dispatch_1",
+      call$0: [function() {
+        var t1, oldState;
+        t1 = this._async$_captured_this_0;
+        oldState = t1._state;
+        t1._state = 0;
+        if (oldState === 3)
+          return;
+        t1.handleNext$1(this._captured_dispatch_1);
+      }, null, null, 0, 0, null, "call"]
+    },
+    _StreamImplEvents: {
+      "^": "_PendingEvents;firstPendingEvent,lastPendingEvent,_state",
+      get$isEmpty: function(_) {
+        return this.lastPendingEvent == null;
+      },
+      add$1: function(_, $event) {
+        var t1 = this.lastPendingEvent;
+        if (t1 == null) {
+          this.lastPendingEvent = $event;
+          this.firstPendingEvent = $event;
+        } else {
+          t1.set$next($event);
+          this.lastPendingEvent = $event;
+        }
+      },
+      handleNext$1: function(dispatch) {
+        var $event, t1;
+        $event = this.firstPendingEvent;
+        t1 = $event.get$next();
+        this.firstPendingEvent = t1;
+        if (t1 == null)
+          this.lastPendingEvent = null;
+        $event.perform$1(dispatch);
+      }
+    },
+    _cancelAndError_closure: {
+      "^": "Closure:0;_captured_future_0,_captured_error_1,_captured_stackTrace_2",
+      call$0: [function() {
+        return this._captured_future_0._completeError$2(this._captured_error_1, this._captured_stackTrace_2);
+      }, null, null, 0, 0, null, "call"]
+    },
+    _cancelAndErrorClosure_closure: {
+      "^": "Closure:13;_captured_subscription_0,_captured_future_1",
+      call$2: function(error, stackTrace) {
+        return P._cancelAndError(this._captured_subscription_0, this._captured_future_1, error, stackTrace);
+      }
+    },
+    _ForwardingStream: {
+      "^": "Stream;",
+      listen$4$cancelOnError$onDone$onError: function(onData, cancelOnError, onDone, onError) {
+        return this._createSubscription$4(onData, onError, onDone, true === cancelOnError);
+      },
+      listen$3$onDone$onError: function(onData, onDone, onError) {
+        return this.listen$4$cancelOnError$onDone$onError(onData, null, onDone, onError);
+      },
+      _createSubscription$4: function(onData, onError, onDone, cancelOnError) {
+        return P._ForwardingStreamSubscription$(this, onData, onError, onDone, cancelOnError, H.getRuntimeTypeArgument(this, "_ForwardingStream", 0), H.getRuntimeTypeArgument(this, "_ForwardingStream", 1));
+      },
+      _handleData$2: function(data, sink) {
+        sink._async$_add$1(data);
+      },
+      $asStream: function($S, $T) {
+        return [$T];
+      }
+    },
+    _ForwardingStreamSubscription: {
+      "^": "_BufferingStreamSubscription;_stream,_subscription,_onData,_onError,_onDone,_zone,_state,_cancelFuture,_pending",
+      _async$_add$1: function(data) {
+        if ((this._state & 2) !== 0)
+          return;
+        this.super$_BufferingStreamSubscription$_add(data);
+      },
+      _addError$2: function(error, stackTrace) {
+        if ((this._state & 2) !== 0)
+          return;
+        this.super$_BufferingStreamSubscription$_addError(error, stackTrace);
+      },
+      _onPause$0: [function() {
+        var t1 = this._subscription;
+        if (t1 == null)
+          return;
+        t1.pause$0(0);
+      }, "call$0", "get$_onPause", 0, 0, 1],
+      _onResume$0: [function() {
+        var t1 = this._subscription;
+        if (t1 == null)
+          return;
+        t1.resume$0();
+      }, "call$0", "get$_onResume", 0, 0, 1],
+      _onCancel$0: function() {
+        var t1 = this._subscription;
+        if (t1 != null) {
+          this._subscription = null;
+          t1.cancel$0();
+        }
+        return;
+      },
+      _handleData$1: [function(data) {
+        this._stream._handleData$2(data, this);
+      }, "call$1", "get$_handleData", 2, 0, function() {
+        return H.computeSignature(function(S, T) {
+          return {func: 1, void: true, args: [S]};
+        }, this.$receiver, "_ForwardingStreamSubscription");
+      }, 6],
+      _handleError$2: [function(error, stackTrace) {
+        this._addError$2(error, stackTrace);
+      }, "call$2", "get$_handleError", 4, 0, 14, 0, 1],
+      _handleDone$0: [function() {
+        this._close$0();
+      }, "call$0", "get$_handleDone", 0, 0, 1],
+      _ForwardingStreamSubscription$5: function(_stream, onData, onError, onDone, cancelOnError, $S, $T) {
+        var t1, t2;
+        t1 = this.get$_handleData();
+        t2 = this.get$_handleError();
+        this._subscription = this._stream._async$_source.listen$3$onDone$onError(t1, this.get$_handleDone(), t2);
+      },
+      static: {_ForwardingStreamSubscription$: function(_stream, onData, onError, onDone, cancelOnError, $S, $T) {
+          var t1 = $.Zone__current;
+          t1 = H.setRuntimeTypeInfo(new P._ForwardingStreamSubscription(_stream, null, null, null, null, t1, cancelOnError ? 1 : 0, null, null), [$S, $T]);
+          t1._BufferingStreamSubscription$4(onData, onError, onDone, cancelOnError);
+          t1._ForwardingStreamSubscription$5(_stream, onData, onError, onDone, cancelOnError, $S, $T);
+          return t1;
+        }}
+    },
+    _MapStream: {
+      "^": "_ForwardingStream;_transform,_async$_source",
+      _handleData$2: function(inputEvent, sink) {
+        var outputEvent, e, s, exception, t1;
+        outputEvent = null;
+        try {
+          outputEvent = this._transform$1(inputEvent);
+        } catch (exception) {
+          t1 = H.unwrapException(exception);
+          e = t1;
+          s = H.getTraceFromException(exception);
+          $.Zone__current.toString;
+          sink._addError$2(e, s);
+          return;
+        }
+        sink._async$_add$1(outputEvent);
+      },
+      _transform$1: function(arg0) {
+        return this._transform.call$1(arg0);
+      }
+    },
+    Timer: {
       "^": "Object;"
     },
     AsyncError: {
-      "^": "Object;stackTrace<",
+      "^": "Object;error>,stackTrace<",
       toString$0: function(_) {
         return H.S(this.error);
       },
@@ -4173,6 +5580,9 @@ var getKeys = function(obj){
     },
     _RootZone: {
       "^": "_Zone;",
+      get$errorZone: function() {
+        return this;
+      },
       runGuarded$1: function(f) {
         var e, s, t1, exception;
         try {
@@ -4189,11 +5599,49 @@ var getKeys = function(obj){
           return P._rootHandleUncaughtError(null, null, this, e, s);
         }
       },
+      runUnaryGuarded$2: function(f, arg) {
+        var e, s, t1, exception;
+        try {
+          if (C.C__RootZone === $.Zone__current) {
+            t1 = f.call$1(arg);
+            return t1;
+          }
+          t1 = P._rootRunUnary(null, null, this, f, arg);
+          return t1;
+        } catch (exception) {
+          t1 = H.unwrapException(exception);
+          e = t1;
+          s = H.getTraceFromException(exception);
+          return P._rootHandleUncaughtError(null, null, this, e, s);
+        }
+      },
+      runBinaryGuarded$3: function(f, arg1, arg2) {
+        var e, s, t1, exception;
+        try {
+          if (C.C__RootZone === $.Zone__current) {
+            t1 = f.call$2(arg1, arg2);
+            return t1;
+          }
+          t1 = P._rootRunBinary(null, null, this, f, arg1, arg2);
+          return t1;
+        } catch (exception) {
+          t1 = H.unwrapException(exception);
+          e = t1;
+          s = H.getTraceFromException(exception);
+          return P._rootHandleUncaughtError(null, null, this, e, s);
+        }
+      },
       bindCallback$2$runGuarded: function(f, runGuarded) {
         if (runGuarded)
           return new P._RootZone_bindCallback_closure(this, f);
         else
           return new P._RootZone_bindCallback_closure0(this, f);
+      },
+      bindUnaryCallback$2$runGuarded: function(f, runGuarded) {
+        if (runGuarded)
+          return new P._RootZone_bindUnaryCallback_closure(this, f);
+        else
+          return new P._RootZone_bindUnaryCallback_closure0(this, f);
       },
       $index: function(_, key) {
         return;
@@ -4202,6 +5650,16 @@ var getKeys = function(obj){
         if ($.Zone__current === C.C__RootZone)
           return f.call$0();
         return P._rootRun(null, null, this, f);
+      },
+      runUnary$2: function(f, arg) {
+        if ($.Zone__current === C.C__RootZone)
+          return f.call$1(arg);
+        return P._rootRunUnary(null, null, this, f, arg);
+      },
+      runBinary$3: function(f, arg1, arg2) {
+        if ($.Zone__current === C.C__RootZone)
+          return f.call$2(arg1, arg2);
+        return P._rootRunBinary(null, null, this, f, arg1, arg2);
       }
     },
     _RootZone_bindCallback_closure: {
@@ -4215,6 +5673,18 @@ var getKeys = function(obj){
       call$0: function() {
         return this._async$_captured_this_2.run$1(this._captured_f_3);
       }
+    },
+    _RootZone_bindUnaryCallback_closure: {
+      "^": "Closure:2;_async$_captured_this_0,_captured_f_1",
+      call$1: [function(arg) {
+        return this._async$_captured_this_0.runUnaryGuarded$2(this._captured_f_1, arg);
+      }, null, null, 2, 0, null, 7, "call"]
+    },
+    _RootZone_bindUnaryCallback_closure0: {
+      "^": "Closure:2;_async$_captured_this_2,_captured_f_3",
+      call$1: [function(arg) {
+        return this._async$_captured_this_2.runUnary$2(this._captured_f_3, arg);
+      }, null, null, 2, 0, null, 7, "call"]
     }
   }], ["dart.collection", "dart:collection",, P, {
     "^": "",
@@ -4931,9 +6401,6 @@ var getKeys = function(obj){
       $indexSet: function(_, key, value) {
         this._map.$indexSet(0, key, value);
       },
-      containsKey$1: function(key) {
-        return this._map.containsKey$1(key);
-      },
       forEach$1: function(_, action) {
         this._map.forEach$1(0, action);
       },
@@ -4954,14 +6421,14 @@ var getKeys = function(obj){
       $isMap: 1
     },
     Maps_mapToString_closure: {
-      "^": "Closure:10;_collection$_box_0,_captured_result_1",
+      "^": "Closure:6;_collection$_box_0,_collection$_captured_result_1",
       call$2: function(k, v) {
         var t1, t2;
         t1 = this._collection$_box_0;
         if (!t1._captured_first_0)
-          this._captured_result_1._contents += ", ";
+          this._collection$_captured_result_1._contents += ", ";
         t1._captured_first_0 = false;
-        t1 = this._captured_result_1;
+        t1 = this._collection$_captured_result_1;
         t2 = t1._contents += H.S(k);
         t1._contents = t2 + ": ";
         t1._contents += H.S(v);
@@ -5141,11 +6608,11 @@ var getKeys = function(obj){
       H.printString(line);
     },
     NoSuchMethodError_toString_closure: {
-      "^": "Closure:11;_box_0,_captured_sb_1",
+      "^": "Closure:15;_core$_box_0,_captured_sb_1",
       call$2: function(key, value) {
         var t1, t2, t3;
         t1 = this._captured_sb_1;
-        t2 = this._box_0;
+        t2 = this._core$_box_0;
         t1._contents += t2._captured_comma_0;
         t3 = t1._contents += H.S(key.get$_name());
         t1._contents = t3 + ": ";
@@ -5175,9 +6642,9 @@ var getKeys = function(obj){
         y = P.DateTime__fourDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCFullYear() + 0 : H.Primitives_lazyAsJsDate(this).getFullYear() + 0);
         m = P.DateTime__twoDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCMonth() + 1 : H.Primitives_lazyAsJsDate(this).getMonth() + 1);
         d = P.DateTime__twoDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCDate() + 0 : H.Primitives_lazyAsJsDate(this).getDate() + 0);
-        h = P.DateTime__twoDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCHours() + 0 : H.Primitives_lazyAsJsDate(this).getHours() + 0);
-        min = P.DateTime__twoDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCMinutes() + 0 : H.Primitives_lazyAsJsDate(this).getMinutes() + 0);
-        sec = P.DateTime__twoDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCSeconds() + 0 : H.Primitives_lazyAsJsDate(this).getSeconds() + 0);
+        h = P.DateTime__twoDigits(H.Primitives_getHours(this));
+        min = P.DateTime__twoDigits(H.Primitives_getMinutes(this));
+        sec = P.DateTime__twoDigits(H.Primitives_getSeconds(this));
         ms = P.DateTime__threeDigits(t1 ? H.Primitives_lazyAsJsDate(this).getUTCMilliseconds() + 0 : H.Primitives_lazyAsJsDate(this).getMilliseconds() + 0);
         if (t1)
           return y + "-" + m + "-" + d + " " + h + ":" + min + ":" + sec + "." + ms + "Z";
@@ -5255,10 +6722,13 @@ var getKeys = function(obj){
         twoDigitSeconds = t1.call$1(C.JSInt_methods.remainder$1(C.JSInt_methods._tdivFast$1(t2, 1000000), 60));
         sixDigitUs = new P.Duration_toString_sixDigits().call$1(C.JSInt_methods.remainder$1(t2, 1000000));
         return "" + C.JSInt_methods._tdivFast$1(t2, 3600000000) + ":" + H.S(twoDigitMinutes) + ":" + H.S(twoDigitSeconds) + "." + H.S(sixDigitUs);
-      }
+      },
+      static: {Duration$: function(days, hours, microseconds, milliseconds, minutes, seconds) {
+          return new P.Duration(864e8 * days + 3600000000 * hours + 60000000 * minutes + 1000000 * seconds + 1000 * milliseconds + microseconds);
+        }}
     },
     Duration_toString_sixDigits: {
-      "^": "Closure:5;",
+      "^": "Closure:7;",
       call$1: function(n) {
         if (n >= 100000)
           return "" + n;
@@ -5274,7 +6744,7 @@ var getKeys = function(obj){
       }
     },
     Duration_toString_twoDigits: {
-      "^": "Closure:5;",
+      "^": "Closure:7;",
       call$1: function(n) {
         if (n >= 10)
           return "" + n;
@@ -5618,7 +7088,7 @@ var getKeys = function(obj){
       "^": "Element;",
       $isHtmlElement: 1,
       $isObject: 1,
-      "%": "HTMLAppletElement|HTMLAudioElement|HTMLBRElement|HTMLBaseElement|HTMLButtonElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLEmbedElement|HTMLFieldSetElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLKeygenElement|HTMLLIElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElement|HTMLMediaElement|HTMLMenuElement|HTMLMenuItemElement|HTMLMetaElement|HTMLMeterElement|HTMLModElement|HTMLOListElement|HTMLObjectElement|HTMLOptGroupElement|HTMLOptionElement|HTMLOutputElement|HTMLParagraphElement|HTMLParamElement|HTMLPictureElement|HTMLPreElement|HTMLProgressElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTextAreaElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|HTMLVideoElement|PluginPlaceholderElement;HTMLElement"
+      "%": "HTMLAppletElement|HTMLBRElement|HTMLBaseElement|HTMLCanvasElement|HTMLContentElement|HTMLDListElement|HTMLDataListElement|HTMLDetailsElement|HTMLDialogElement|HTMLDirectoryElement|HTMLDivElement|HTMLEmbedElement|HTMLFieldSetElement|HTMLFontElement|HTMLFrameElement|HTMLHRElement|HTMLHeadElement|HTMLHeadingElement|HTMLHtmlElement|HTMLIFrameElement|HTMLImageElement|HTMLKeygenElement|HTMLLabelElement|HTMLLegendElement|HTMLLinkElement|HTMLMapElement|HTMLMarqueeElement|HTMLMenuElement|HTMLMenuItemElement|HTMLMetaElement|HTMLModElement|HTMLOListElement|HTMLObjectElement|HTMLOptGroupElement|HTMLParagraphElement|HTMLPictureElement|HTMLPreElement|HTMLQuoteElement|HTMLScriptElement|HTMLShadowElement|HTMLSourceElement|HTMLSpanElement|HTMLStyleElement|HTMLTableCaptionElement|HTMLTableCellElement|HTMLTableColElement|HTMLTableDataCellElement|HTMLTableElement|HTMLTableHeaderCellElement|HTMLTableRowElement|HTMLTableSectionElement|HTMLTemplateElement|HTMLTitleElement|HTMLTrackElement|HTMLUListElement|HTMLUnknownElement|PluginPlaceholderElement;HTMLElement"
     },
     AnchorElement: {
       "^": "HtmlElement;",
@@ -5646,10 +7116,18 @@ var getKeys = function(obj){
       $isInterceptor: 1,
       "%": "HTMLBodyElement"
     },
+    ButtonElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLButtonElement"
+    },
     CharacterData: {
       "^": "Node;length=",
       $isInterceptor: 1,
       "%": "CDATASection|CharacterData|Comment|ProcessingInstruction|Text"
+    },
+    DeviceLightEvent: {
+      "^": "Event;value=",
+      "%": "DeviceLightEvent"
     },
     DocumentFragment: {
       "^": "Node;",
@@ -5664,7 +7142,7 @@ var getKeys = function(obj){
       "%": "DOMException"
     },
     DomRectReadOnly: {
-      "^": "Interceptor;bottom=,height=,left=,right=,top=,width=,x=",
+      "^": "Interceptor;bottom=,height=,left=,right=,top=,width=",
       toString$0: function(receiver) {
         return "Rectangle (" + H.S(receiver.left) + ", " + H.S(receiver.top) + ") " + H.S(this.get$width(receiver)) + " x " + H.S(this.get$height(receiver));
       },
@@ -5712,13 +7190,23 @@ var getKeys = function(obj){
       toString$0: function(receiver) {
         return receiver.localName;
       },
+      translate$2: function($receiver, arg0, arg1) {
+        return $receiver.translate.call$2(arg0, arg1);
+      },
       $isInterceptor: 1,
       "%": ";Element"
     },
+    ErrorEvent: {
+      "^": "Event;error=",
+      "%": "ErrorEvent"
+    },
     Event: {
       "^": "Interceptor;",
+      stopPropagation$0: function(receiver) {
+        return receiver.stopPropagation();
+      },
       $isEvent: 1,
-      "%": "AnimationPlayerEvent|ApplicationCacheErrorEvent|AudioProcessingEvent|AutocompleteErrorEvent|BeforeUnloadEvent|ClipboardEvent|CloseEvent|CompositionEvent|CustomEvent|DeviceLightEvent|DeviceMotionEvent|DeviceOrientationEvent|DragEvent|ErrorEvent|Event|ExtendableEvent|FetchEvent|FocusEvent|FontFaceSetLoadEvent|GamepadEvent|HashChangeEvent|IDBVersionChangeEvent|InputEvent|InstallEvent|KeyboardEvent|MIDIConnectionEvent|MIDIMessageEvent|MSPointerEvent|MediaKeyEvent|MediaKeyMessageEvent|MediaKeyNeededEvent|MediaQueryListEvent|MediaStreamEvent|MediaStreamTrackEvent|MessageEvent|MouseEvent|MutationEvent|OfflineAudioCompletionEvent|OverflowEvent|PageTransitionEvent|PointerEvent|PopStateEvent|ProgressEvent|PushEvent|RTCDTMFToneChangeEvent|RTCDataChannelEvent|RTCIceCandidateEvent|RTCPeerConnectionIceEvent|RelatedEvent|ResourceProgressEvent|SVGZoomEvent|SecurityPolicyViolationEvent|SpeechRecognitionError|SpeechRecognitionEvent|SpeechSynthesisEvent|StorageEvent|TextEvent|TouchEvent|TrackEvent|TransitionEvent|UIEvent|WebGLContextEvent|WebKitAnimationEvent|WebKitTransitionEvent|WheelEvent|XMLHttpRequestProgressEvent"
+      "%": "AnimationPlayerEvent|ApplicationCacheErrorEvent|AudioProcessingEvent|AutocompleteErrorEvent|BeforeUnloadEvent|CloseEvent|CompositionEvent|CustomEvent|DeviceMotionEvent|DeviceOrientationEvent|DragEvent|ExtendableEvent|FetchEvent|FocusEvent|FontFaceSetLoadEvent|GamepadEvent|HashChangeEvent|IDBVersionChangeEvent|InstallEvent|KeyboardEvent|MIDIConnectionEvent|MIDIMessageEvent|MSPointerEvent|MediaKeyEvent|MediaKeyMessageEvent|MediaKeyNeededEvent|MediaQueryListEvent|MediaStreamEvent|MediaStreamTrackEvent|MessageEvent|MouseEvent|MutationEvent|OfflineAudioCompletionEvent|OverflowEvent|PageTransitionEvent|PointerEvent|PopStateEvent|ProgressEvent|PushEvent|RTCDTMFToneChangeEvent|RTCDataChannelEvent|RTCIceCandidateEvent|RTCPeerConnectionIceEvent|RelatedEvent|ResourceProgressEvent|SVGZoomEvent|SecurityPolicyViolationEvent|SpeechRecognitionEvent|SpeechSynthesisEvent|StorageEvent|TextEvent|TouchEvent|TrackEvent|TransitionEvent|UIEvent|WebGLContextEvent|WebKitAnimationEvent|WebKitTransitionEvent|WheelEvent|XMLHttpRequestProgressEvent;ClipboardEvent|Event|InputEvent"
     },
     EventTarget: {
       "^": "Interceptor;",
@@ -5734,10 +7222,22 @@ var getKeys = function(obj){
       "%": "ImageData"
     },
     InputElement: {
-      "^": "HtmlElement;",
+      "^": "HtmlElement;value=",
       $isInterceptor: 1,
       $isNode: 1,
       "%": "HTMLInputElement"
+    },
+    LIElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLLIElement"
+    },
+    MediaElement: {
+      "^": "HtmlElement;error=",
+      "%": "HTMLAudioElement|HTMLMediaElement|HTMLVideoElement"
+    },
+    MeterElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLMeterElement"
     },
     Navigator: {
       "^": "Interceptor;",
@@ -5752,7 +7252,7 @@ var getKeys = function(obj){
       },
       $isNode: 1,
       $isObject: 1,
-      "%": "Attr|Document|HTMLDocument|XMLDocument;Node"
+      "%": "Document|HTMLDocument|XMLDocument;Node"
     },
     NodeList: {
       "^": "Interceptor_ListMixin_ImmutableListMixin;",
@@ -5809,15 +7309,43 @@ var getKeys = function(obj){
         return [W.Node];
       }
     },
+    OptionElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLOptionElement"
+    },
+    OutputElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLOutputElement"
+    },
+    ParamElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLParamElement"
+    },
+    ProgressElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLProgressElement"
+    },
     SelectElement: {
-      "^": "HtmlElement;length=",
+      "^": "HtmlElement;length=,value=",
       "%": "HTMLSelectElement"
+    },
+    SpeechRecognitionError: {
+      "^": "Event;error=",
+      "%": "SpeechRecognitionError"
+    },
+    TextAreaElement: {
+      "^": "HtmlElement;value=",
+      "%": "HTMLTextAreaElement"
     },
     Window: {
       "^": "EventTarget;",
       $isWindow: 1,
       $isInterceptor: 1,
       "%": "DOMWindow|Window"
+    },
+    _Attr: {
+      "^": "Node;value=",
+      "%": "Attr"
     },
     _ClientRect: {
       "^": "Interceptor;bottom=,height=,left=,right=,top=,width=",
@@ -5875,9 +7403,6 @@ var getKeys = function(obj){
       },
       get$width: function(receiver) {
         return receiver.width;
-      },
-      get$x: function(receiver) {
-        return receiver.x;
       },
       "%": "DOMRect"
     },
@@ -5941,113 +7466,100 @@ var getKeys = function(obj){
       "%": "SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGSetElement"
     },
     FEBlendElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEBlendElement"
     },
     FEColorMatrixElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEColorMatrixElement"
     },
     FEComponentTransferElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEComponentTransferElement"
     },
     FECompositeElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFECompositeElement"
     },
     FEConvolveMatrixElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEConvolveMatrixElement"
     },
     FEDiffuseLightingElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEDiffuseLightingElement"
     },
     FEDisplacementMapElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
+      scale$2: function($receiver, arg0, arg1) {
+        return $receiver.scale.call$2(arg0, arg1);
+      },
       $isInterceptor: 1,
       "%": "SVGFEDisplacementMapElement"
     },
     FEFloodElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEFloodElement"
     },
     FEGaussianBlurElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEGaussianBlurElement"
     },
     FEImageElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEImageElement"
     },
     FEMergeElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEMergeElement"
     },
     FEMorphologyElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEMorphologyElement"
     },
     FEOffsetElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFEOffsetElement"
     },
-    FEPointLightElement: {
-      "^": "SvgElement;x=",
-      "%": "SVGFEPointLightElement"
-    },
     FESpecularLightingElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFESpecularLightingElement"
     },
-    FESpotLightElement: {
-      "^": "SvgElement;x=",
-      "%": "SVGFESpotLightElement"
-    },
     FETileElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFETileElement"
     },
     FETurbulenceElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;result=",
       $isInterceptor: 1,
       "%": "SVGFETurbulenceElement"
     },
     FilterElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;",
       $isInterceptor: 1,
       "%": "SVGFilterElement"
-    },
-    ForeignObjectElement: {
-      "^": "GraphicsElement;x=",
-      "%": "SVGForeignObjectElement"
-    },
-    GeometryElement: {
-      "^": "GraphicsElement;",
-      "%": "SVGCircleElement|SVGEllipseElement|SVGLineElement|SVGPathElement|SVGPolygonElement|SVGPolylineElement;SVGGeometryElement"
     },
     GraphicsElement: {
       "^": "SvgElement;",
       $isInterceptor: 1,
-      "%": "SVGClipPathElement|SVGDefsElement|SVGGElement|SVGSwitchElement;SVGGraphicsElement"
+      "%": "SVGCircleElement|SVGClipPathElement|SVGDefsElement|SVGEllipseElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGLineElement|SVGPathElement|SVGPolygonElement|SVGPolylineElement|SVGRectElement|SVGSwitchElement;SVGGraphicsElement"
     },
     ImageElement0: {
-      "^": "GraphicsElement;x=",
+      "^": "GraphicsElement;",
       $isInterceptor: 1,
       "%": "SVGImageElement"
     },
@@ -6057,18 +7569,14 @@ var getKeys = function(obj){
       "%": "SVGMarkerElement"
     },
     MaskElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;",
       $isInterceptor: 1,
       "%": "SVGMaskElement"
     },
     PatternElement: {
-      "^": "SvgElement;x=",
+      "^": "SvgElement;",
       $isInterceptor: 1,
       "%": "SVGPatternElement"
-    },
-    RectElement: {
-      "^": "GeometryElement;x=",
-      "%": "SVGRectElement"
     },
     ScriptElement0: {
       "^": "SvgElement;",
@@ -6078,10 +7586,10 @@ var getKeys = function(obj){
     SvgElement: {
       "^": "Element;",
       $isInterceptor: 1,
-      "%": "SVGAltGlyphDefElement|SVGAltGlyphItemElement|SVGComponentTransferFunctionElement|SVGDescElement|SVGDiscardElement|SVGFEDistantLightElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEMergeNodeElement|SVGFontElement|SVGFontFaceElement|SVGFontFaceFormatElement|SVGFontFaceNameElement|SVGFontFaceSrcElement|SVGFontFaceUriElement|SVGGlyphElement|SVGHKernElement|SVGMetadataElement|SVGMissingGlyphElement|SVGStopElement|SVGStyleElement|SVGTitleElement|SVGVKernElement;SVGElement"
+      "%": "SVGAltGlyphDefElement|SVGAltGlyphItemElement|SVGComponentTransferFunctionElement|SVGDescElement|SVGDiscardElement|SVGFEDistantLightElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEMergeNodeElement|SVGFEPointLightElement|SVGFESpotLightElement|SVGFontElement|SVGFontFaceElement|SVGFontFaceFormatElement|SVGFontFaceNameElement|SVGFontFaceSrcElement|SVGFontFaceUriElement|SVGGlyphElement|SVGHKernElement|SVGMetadataElement|SVGMissingGlyphElement|SVGStopElement|SVGStyleElement|SVGTitleElement|SVGVKernElement;SVGElement"
     },
     SvgSvgElement: {
-      "^": "GraphicsElement;x=",
+      "^": "GraphicsElement;",
       $isInterceptor: 1,
       "%": "SVGSVGElement"
     },
@@ -6100,11 +7608,14 @@ var getKeys = function(obj){
       "%": "SVGTextPathElement"
     },
     TextPositioningElement: {
-      "^": "TextContentElement;x=",
+      "^": "TextContentElement;",
+      rotate$1: function($receiver, arg0) {
+        return $receiver.rotate.call$1(arg0);
+      },
       "%": "SVGTSpanElement|SVGTextElement;SVGTextPositioningElement"
     },
     UseElement: {
-      "^": "GraphicsElement;x=",
+      "^": "GraphicsElement;",
       $isInterceptor: 1,
       "%": "SVGUseElement"
     },
@@ -6151,13 +7662,6 @@ var getKeys = function(obj){
     }
   }], ["dart.js", "dart:js",, P, {
     "^": "",
-    _convertDartFunction: function(f, captureThis) {
-      return function(_call, f, captureThis) {
-        return function() {
-          return _call(f, captureThis, this, Array.prototype.slice.apply(arguments));
-        };
-      }(P._callDartFunction, f, captureThis);
-    },
     _callDartFunction: [function(callback, captureThis, $self, $arguments) {
       var arguments0, dartArgs;
       if (captureThis === true) {
@@ -6167,7 +7671,7 @@ var getKeys = function(obj){
       }
       dartArgs = P.List_List$from(J.map$1$ax($arguments, P.js___convertToDart$closure()), true, null);
       return P._convertToJS(H.Primitives_applyFunctionWithPositionalArguments(callback, dartArgs));
-    }, null, null, 8, 0, null, 15, 16, 17, 18],
+    }, null, null, 8, 0, null, 22, 23, 24, 25],
     _defineProperty: function(o, $name, value) {
       var exception;
       if (Object.isExtensible(o) && !Object.prototype.hasOwnProperty.call(o, $name))
@@ -6198,7 +7702,7 @@ var getKeys = function(obj){
       if (!!t1.$isFunction)
         return P._getJsProxy(o, "$dart_jsFunction", new P._convertToJS_closure());
       return P._getJsProxy(o, "_$dart_jsObject", new P._convertToJS_closure0($.$get$_dartProxyCtor()));
-    }, "call$1", "js___convertToJS$closure", 2, 0, 1, 1],
+    }, "call$1", "js___convertToJS$closure", 2, 0, 2, 3],
     _getJsProxy: function(o, propertyName, createProxy) {
       var jsProxy = P._getOwnProperty(o, propertyName);
       if (jsProxy == null) {
@@ -6226,7 +7730,7 @@ var getKeys = function(obj){
         else
           return P._wrapToDart(o);
       }
-    }, "call$1", "js___convertToDart$closure", 2, 0, 13, 1],
+    }, "call$1", "js___convertToDart$closure", 2, 0, 18, 3],
     _wrapToDart: function(o) {
       if (typeof o == "function")
         return P._getDartProxy(o, $.$get$_DART_CLOSURE_PROPERTY_NAME(), new P._wrapToDart_closure());
@@ -6275,7 +7779,7 @@ var getKeys = function(obj){
       callMethod$2: function(method, args) {
         var t1, t2;
         t1 = this._jsObject;
-        t2 = args == null ? null : P.List_List$from(H.setRuntimeTypeInfo(new H.MappedListIterable(args, P.js___convertToJS$closure()), [null, null]), true, null);
+        t2 = args == null ? null : P.List_List$from(J.map$1$ax(args, P.js___convertToJS$closure()), true, null);
         return P._convertToDart(t1[method].apply(t1, t2));
       },
       callMethod$1: function(method) {
@@ -6309,7 +7813,7 @@ var getKeys = function(obj){
         }}
     },
     JsObject__convertDataTree__convert: {
-      "^": "Closure:1;_captured__convertedObjects_0",
+      "^": "Closure:2;_captured__convertedObjects_0",
       call$1: [function(o) {
         var t1, t2, convertedMap, key, convertedList;
         t1 = this._captured__convertedObjects_0;
@@ -6331,7 +7835,7 @@ var getKeys = function(obj){
           return convertedList;
         } else
           return P._convertToJS(o);
-      }, null, null, 2, 0, null, 1, "call"]
+      }, null, null, 2, 0, null, 3, "call"]
     },
     JsFunction: {
       "^": "JsObject;_jsObject",
@@ -6343,10 +7847,7 @@ var getKeys = function(obj){
       },
       apply$1: function(args) {
         return this.apply$2$thisArg(args, null);
-      },
-      static: {JsFunction_JsFunction$withThis: function(f) {
-          return new P.JsFunction(P._convertDartFunction(f, true));
-        }}
+      }
     },
     JsArray: {
       "^": "JsObject_ListMixin;_jsObject",
@@ -6390,33 +7891,37 @@ var getKeys = function(obj){
       $asIterable: null
     },
     _convertToJS_closure: {
-      "^": "Closure:1;",
+      "^": "Closure:2;",
       call$1: function(o) {
-        var jsFunction = P._convertDartFunction(o, false);
+        var jsFunction = function(_call, f, captureThis) {
+          return function() {
+            return _call(f, captureThis, this, Array.prototype.slice.apply(arguments));
+          };
+        }(P._callDartFunction, o, false);
         P._defineProperty(jsFunction, $.$get$_DART_CLOSURE_PROPERTY_NAME(), o);
         return jsFunction;
       }
     },
     _convertToJS_closure0: {
-      "^": "Closure:1;_captured_ctor_0",
+      "^": "Closure:2;_captured_ctor_0",
       call$1: function(o) {
         return new this._captured_ctor_0(o);
       }
     },
     _wrapToDart_closure: {
-      "^": "Closure:1;",
+      "^": "Closure:2;",
       call$1: function(o) {
         return new P.JsFunction(o);
       }
     },
     _wrapToDart_closure0: {
-      "^": "Closure:1;",
+      "^": "Closure:2;",
       call$1: function(o) {
         return H.setRuntimeTypeInfo(new P.JsArray(o), [null]);
       }
     },
     _wrapToDart_closure1: {
-      "^": "Closure:1;",
+      "^": "Closure:2;",
       call$1: function(o) {
         return new P.JsObject(o);
       }
@@ -6432,6 +7937,25 @@ var getKeys = function(obj){
       hash = 536870911 & hash + ((67108863 & hash) << 3 >>> 0);
       hash ^= hash >>> 11;
       return 536870911 & hash + ((16383 & hash) << 15 >>> 0);
+    },
+    min: function(a, b) {
+      if (typeof a !== "number")
+        throw H.wrapException(P.ArgumentError$(a));
+      if (typeof b !== "number")
+        throw H.wrapException(P.ArgumentError$(b));
+      if (a > b)
+        return b;
+      if (a < b)
+        return a;
+      if (typeof b === "number") {
+        if (typeof a === "number")
+          if (a === 0)
+            return (a + b) * a * b;
+        if (a === 0 && C.JSDouble_methods.get$isNegative(b) || C.JSDouble_methods.get$isNaN(b))
+          return b;
+        return a;
+      }
+      return a;
     }
   }], ["dart.typed_data.implementation", "dart:_native_typed_data",, H, {
     "^": "",
@@ -6713,27 +8237,10 @@ var getKeys = function(obj){
         return J.$index$asx($.$get$context(), "ImportWrapper");
       }
     },
-    closure7: {
-      "^": "Closure:0;",
-      call$0: function() {
-        return J.$index$asx($.$get$context(), "KlassWrapper");
-      }
-    },
     closure: {
       "^": "Closure:0;",
       call$0: function() {
-        return J.$index$asx($.$get$context(), "wrapCall");
-      }
-    },
-    closure6: {
-      "^": "Closure:0;",
-      call$0: function() {
-        var t1, t2, t3;
-        t1 = ["lang"];
-        t2 = $.$get$_ImportWrapper();
-        t3 = [];
-        C.JSArray_methods.addAll$1(t3, C.JSArray_methods.map$1([t1], P.js___convertToJS$closure()));
-        return new L.Lang(t1, P.JsObject_JsObject(t2, H.setRuntimeTypeInfo(new P.JsArray(t3), [null])));
+        return J.$index$asx($.$get$context(), "print");
       }
     },
     GjsObject: {
@@ -6749,53 +8256,397 @@ var getKeys = function(obj){
       ctor$1: function(args) {
         return this.internal.callMethod$2("ctor", args);
       },
-      get$_wrapped: function() {
-        return this.internal;
+      func$1: function(args) {
+        return this.internal.callMethod$2("func", args);
+      },
+      getValue$0: function() {
+        return this.internal.callMethod$1("getValue");
       },
       static: {ImportWrapper_ImportWrapper: function(path) {
           var t1, t2;
           t1 = $.$get$_ImportWrapper();
           t2 = [];
-          C.JSArray_methods.addAll$1(t2, C.JSArray_methods.map$1([path], P.js___convertToJS$closure()));
+          C.JSArray_methods.addAll$1(t2, H.setRuntimeTypeInfo(new H.MappedListIterable([path], P.js___convertToJS$closure()), [null, null]));
           return new L.ImportWrapper(path, P.JsObject_JsObject(t1, H.setRuntimeTypeInfo(new P.JsArray(t2), [null])));
         }}
-    },
-    LangClassWrapper: {
-      "^": "GjsObject;internal",
-      ctor$1: function(args) {
-        return this.internal.callMethod$2("ctor", args);
-      },
-      get$_wrapped: function() {
-        return this.internal;
-      }
     },
     Klass: {
       "^": "Object;internal<",
       ctor$1: function(args) {
         return this.internal.ctor$1(args);
       }
+    }
+  }], ["gjs_integration.cairo", "package:gjs_integration/cairo.dart",, L, {
+    "^": "",
+    closure22: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return L.ImportWrapper_ImportWrapper(["cairo"]);
+      }
     },
-    Lang: {
-      "^": "ImportWrapper;path,internal",
-      newClass$4$extend$options$properties: function($name, extend, options, properties) {
-        var t1, t2, t3;
-        options.$indexSet(0, "Name", $name);
-        if (extend != null)
-          options.$indexSet(0, "Extends", extend.get$internal().get$_wrapped());
-        t1 = $.$get$Lang__newLangClass().apply$1([P.JsObject_JsObject$jsify(options)]);
-        t2 = $.$get$_KlassWrapper();
-        t3 = [];
-        C.JSArray_methods.addAll$1(t3, C.JSArray_methods.map$1([t1], P.js___convertToJS$closure()));
-        return new L.Klass(new L.LangClassWrapper(P.JsObject_JsObject(t2, H.setRuntimeTypeInfo(new P.JsArray(t3), [null]))));
+    Surface: {
+      "^": "GObjectBase;"
+    },
+    ImageSurface: {
+      "^": "Surface;_klass,internal"
+    },
+    closure31: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_cairo(), "ImageSurface");
+      }
+    },
+    closure30: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$ImageSurface__nativeCtor());
+      }
+    },
+    DrawEvent: {
+      "^": "InterruptibleEvent;cr<,_stopPropagate"
+    },
+    Context: {
+      "^": "GObjectBase;_klass,internal",
+      fill$0: function() {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("fill", []);
       },
-      newClass$3$extend$options: function($name, extend, options) {
-        return this.newClass$4$extend$options$properties($name, extend, options, null);
+      lineTo$2: function(x, y) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("lineTo", [x, y]);
+      },
+      moveTo$2: function(_, x, y) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("moveTo", [x, y]);
+      },
+      paint$0: function() {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("paint", []);
+      },
+      restore$0: function() {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("restore", []);
+      },
+      rotate$1: function(_, angle) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("rotate", [angle]);
+      },
+      save$0: function() {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("save", []);
+      },
+      scale$2: function(_, sx, sy) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("scale", [sx, sy]);
+      },
+      setLineCap$1: function(lineCap) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("setLineCap", [J.get$value$x(lineCap)]);
+      },
+      setLineWidth$1: function(w) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("setLineWidth", [w]);
+      },
+      setOperator$1: function(operator) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("setOperator", [J.get$value$x(operator)]);
+      },
+      setSourceRGB$3: function(r, g, b) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("setSourceRGB", [r, g, b]);
+      },
+      setSourceRGBA$4: function(r, g, b, a) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("setSourceRGBA", [r, g, b, a]);
+      },
+      setSourceSurface$3: function(surface, x, y) {
+        var t1 = H.interceptedTypeCast(this.internal, "$isJsObject");
+        return t1.callMethod$2("setSourceSurface", [surface == null ? null : surface.internal, x, y]);
+      },
+      stroke$0: function() {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("stroke", []);
+      },
+      translate$2: function(_, dx, dy) {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("translate", [dx, dy]);
+      }
+    },
+    closure29: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_cairo(), "Context");
+      }
+    },
+    closure28: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Context__nativeCtor());
+      }
+    },
+    Format: {
+      "^": "Object;value>"
+    },
+    closure33: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_cairo(), "Format");
+      }
+    },
+    closure32: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Format(J.$index$asx($.$get$Format__nativeCtor(), "ARGB32").getValue$0());
+      }
+    },
+    closure42: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Format(J.$index$asx($.$get$Format__nativeCtor(), "A1").getValue$0());
+      }
+    },
+    LineCap: {
+      "^": "Object;value>"
+    },
+    closure21: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_cairo(), "LineCap");
+      }
+    },
+    closure20: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.LineCap(J.$index$asx($.$get$LineCap__nativeCtor(), "ROUND").getValue$0());
+      }
+    },
+    Operator: {
+      "^": "Object;value>",
+      $eq: function(_, other) {
+        if (other == null)
+          return false;
+        if (!(other instanceof L.Operator))
+          return false;
+        return J.$eq$(this.value, other.value);
+      }
+    },
+    closure24: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_cairo(), "Operator");
+      }
+    },
+    closure23: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Operator(J.$index$asx($.$get$Operator__nativeCtor(), "OVER").getValue$0());
+      }
+    },
+    closure34: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Operator(J.$index$asx($.$get$Operator__nativeCtor(), "SOURCE").getValue$0());
+      }
+    }
+  }], ["gjs_integration.gdk", "package:gjs_integration/gdk.dart",, F, {
+    "^": "",
+    closure2: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return L.ImportWrapper_ImportWrapper(["gi", "Gdk"]);
+      }
+    },
+    EventMask: {
+      "^": "Object;value>",
+      $eq: function(_, other) {
+        if (other == null)
+          return false;
+        if (!(other instanceof F.EventMask))
+          return false;
+        return J.$eq$(this.value, other.value);
+      },
+      $or: function(_, other) {
+        return new F.EventMask(J.$or$n(this.value, J.get$value$x(other)));
+      }
+    },
+    closure38: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "EventMask");
+      }
+    },
+    closure37: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new F.EventMask(J.$index$asx($.$get$EventMask__nativeCtor(), "STRUCTURE_MASK").getValue$0());
+      }
+    },
+    Display: {
+      "^": "GObject;_klass,internal",
+      supportsShapes$0: function() {
+        return H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("supports_shapes", []);
+      }
+    },
+    closure1: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "Display");
+      }
+    },
+    closure0: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Display__nativeCtor());
+      }
+    },
+    Geometry: {
+      "^": "GObjectBase;_klass,internal",
+      static: {Geometry$: function(baseHeight, baseWidth, heightInc, maxAspect, maxHeight, maxWidth, minAspect, minHeight, minWidth, widthInc, winGravity) {
+          var t1, t2;
+          t1 = $.$get$Geometry_klass();
+          t2 = t1.ctor$1([P.JsObject_JsObject$jsify(P.LinkedHashMap__makeLiteral(["min_width", minWidth, "min_height", minHeight, "max_width", maxWidth, "max_height", maxHeight, "base_width", baseWidth, "base_height", baseHeight, "width_inc", widthInc, "height_inc", heightInc, "min_aspect", minAspect, "max_aspect", maxAspect, "win_gravity", 1]))]);
+          t1 = new F.Geometry(t1, t2);
+          J.$indexSet$ax(t2, "_DART_", t1);
+          return t1;
+        }}
+    },
+    closure13: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "Geometry");
+      }
+    },
+    closure12: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Geometry__nativeCtor());
+      }
+    },
+    Gravity: {
+      "^": "Object;value>",
+      $eq: function(_, other) {
+        if (other == null)
+          return false;
+        if (!(other instanceof F.Gravity))
+          return false;
+        return J.$eq$(this.value, other.value);
+      }
+    },
+    closure15: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "Gravity");
+      }
+    },
+    closure14: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new F.Gravity(J.$index$asx($.$get$Gravity__nativeCtor(), "SOUTH_EAST").getValue$0());
+      }
+    },
+    Pixbuf: {
+      "^": "GObjectBase;_klass,internal",
+      static: {Pixbuf_getFromSurface: function(surface, x, y, width, height) {
+          var t1, t2, newInternal;
+          t1 = J.$index$asx($.$get$_gdk(), "pixbuf_get_from_surface");
+          t2 = [];
+          C.JSArray_methods.addAll$1(t2, H.setRuntimeTypeInfo(new H.MappedListIterable([surface.internal, x, y, width, height], P.js___convertToJS$closure()), [null, null]));
+          newInternal = t1.func$1(H.setRuntimeTypeInfo(new P.JsArray(t2), [null]));
+          t1 = J.getInterceptor$asx(newInternal);
+          if (t1.$index(newInternal, "_DART_") == null) {
+            t2 = new F.Pixbuf($.$get$Pixbuf_klass(), newInternal);
+            t1.$indexSet(newInternal, "_DART_", t2);
+            t1.$indexSet(newInternal, "_DART_", t2);
+          }
+          return t1.$index(newInternal, "_DART_");
+        }}
+    },
+    closure41: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "Pixbuf");
+      }
+    },
+    closure40: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Pixbuf__nativeCtor());
+      }
+    },
+    Screen: {
+      "^": "GObject;_klass,internal",
+      get$rgbaVisual: function() {
+        var newInternal, t1, t2;
+        newInternal = H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("get_rgba_visual", []);
+        if (newInternal == null)
+          return;
+        t1 = J.getInterceptor$asx(newInternal);
+        if (t1.$index(newInternal, "_DART_") == null) {
+          t2 = new F.Visual($.$get$Visual_klass(), newInternal);
+          t1.$indexSet(newInternal, "_DART_", t2);
+          t1.$indexSet(newInternal, "_DART_", t2);
+        }
+        return t1.$index(newInternal, "_DART_");
+      },
+      get$systemVisual: function() {
+        var newInternal, t1, t2;
+        newInternal = H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("get_system_visual", []);
+        t1 = J.getInterceptor$asx(newInternal);
+        if (t1.$index(newInternal, "_DART_") == null) {
+          t2 = new F.Visual($.$get$Visual_klass(), newInternal);
+          t1.$indexSet(newInternal, "_DART_", t2);
+          t1.$indexSet(newInternal, "_DART_", t2);
+        }
+        return t1.$index(newInternal, "_DART_");
+      }
+    },
+    closure7: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "Screen");
+      }
+    },
+    closure6: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Screen__nativeCtor());
+      }
+    },
+    Visual: {
+      "^": "GObject;_klass,internal"
+    },
+    closure5: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "Visual");
+      }
+    },
+    closure4: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Visual__nativeCtor());
+      }
+    },
+    WindowHints: {
+      "^": "Object;value>",
+      $eq: function(_, other) {
+        if (other == null)
+          return false;
+        if (!(other instanceof F.WindowHints))
+          return false;
+        return J.$eq$(this.value, other.value);
+      },
+      $or: function(_, other) {
+        return new F.WindowHints(J.$or$n(this.value, J.get$value$x(other)));
+      }
+    },
+    closure9: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gdk(), "WindowHints");
+      }
+    },
+    closure10: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new F.WindowHints(J.$index$asx($.$get$WindowHints__nativeCtor(), "MIN_SIZE").getValue$0());
+      }
+    },
+    closure11: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new F.WindowHints(J.$index$asx($.$get$WindowHints__nativeCtor(), "MAX_SIZE").getValue$0());
       }
     },
     closure8: {
       "^": "Closure:0;",
       call$0: function() {
-        return J.$index$asx($.$get$context(), "newLangClass");
+        return new F.WindowHints(J.$index$asx($.$get$WindowHints__nativeCtor(), "ASPECT").getValue$0());
       }
     }
   }], ["gjs_integration.gobject", "package:gjs_integration/gobject.dart",, R, {
@@ -6804,125 +8655,357 @@ var getKeys = function(obj){
       "^": "GjsObject;"
     },
     GObject: {
-      "^": "GObjectBase;"
+      "^": "GObjectBase;",
+      streamControllerFromNativeOneArgSynchronous$2: function(connectedSignal, mapFunc) {
+        var t1, controller;
+        t1 = {};
+        t1._captured_signalConnection_0 = null;
+        t1._captured_controller_1 = null;
+        controller = P.StreamController_StreamController(new R.GObject_streamControllerFromNativeOneArgSynchronous_closure(t1, this), new R.GObject_streamControllerFromNativeOneArgSynchronous_closure0(t1, this, connectedSignal, mapFunc), null, null, true, null);
+        t1._captured_controller_1 = controller;
+        return controller;
+      }
+    },
+    GObject_streamControllerFromNativeOneArgSynchronous_closure0: {
+      "^": "Closure:0;_gobject$_box_0,_captured_this_1,_captured_connectedSignal_2,_captured_mapFunc_3",
+      call$0: function() {
+        var t1 = this._gobject$_box_0;
+        t1._captured_signalConnection_0 = H.interceptedTypeCast(this._captured_this_1.internal, "$isJsObject").callMethod$2("connect", [this._captured_connectedSignal_2, new R.GObject_streamControllerFromNativeOneArgSynchronous__closure(t1, this._captured_mapFunc_3)]);
+      }
+    },
+    GObject_streamControllerFromNativeOneArgSynchronous__closure: {
+      "^": "Closure:6;_gobject$_box_0,_captured_mapFunc_4",
+      call$2: [function(_self, result) {
+        var $event, t1;
+        $event = this._captured_mapFunc_4.call$1(result);
+        t1 = this._gobject$_box_0._captured_controller_1;
+        if (t1._state >= 4)
+          H.throwExpression(t1._badEventState$0());
+        t1._async$_add$1($event);
+        return $event.get$propagationIsStopped();
+      }, null, null, 4, 0, null, 26, 27, "call"]
+    },
+    GObject_streamControllerFromNativeOneArgSynchronous_closure: {
+      "^": "Closure:0;_gobject$_box_0,_captured_this_5",
+      call$0: [function() {
+        var t1 = this._gobject$_box_0._captured_signalConnection_0;
+        H.interceptedTypeCast(this._captured_this_5.internal, "$isJsObject").callMethod$2("disconnect", [t1]);
+      }, null, null, 0, 0, null, "call"]
+    },
+    InterruptibleEvent: {
+      "^": "Object;",
+      get$propagationIsStopped: function() {
+        return this._stopPropagate;
+      },
+      stopPropagation$0: function(_) {
+        this._stopPropagate = true;
+      }
     }
   }], ["gjs_integration.gtk", "package:gjs_integration/gtk.dart",, T, {
     "^": "",
-    closure2: {
+    closure18: {
       "^": "Closure:0;",
       call$0: function() {
         return L.ImportWrapper_ImportWrapper(["gi", "Gtk"]);
       }
     },
-    Application: {
-      "^": "GObject;"
-    },
-    closure5: {
-      "^": "Closure:0;",
-      call$0: function() {
-        return new L.Klass(J.$index$asx($.$get$_gtk(), "Application"));
+    Align: {
+      "^": "Object;value>",
+      $eq: function(_, other) {
+        if (other == null)
+          return false;
+        if (!(other instanceof T.Align))
+          return false;
+        return J.$eq$(this.value, other.value);
       }
     },
-    ApplicationWindow: {
-      "^": "GObject;_klass,internal"
-    },
-    closure4: {
+    closure36: {
       "^": "Closure:0;",
       call$0: function() {
-        return new L.Klass(J.$index$asx($.$get$_gtk(), "ApplicationWindow"));
+        return J.$index$asx($.$get$_gtk(), "Align");
       }
     },
-    Label: {
-      "^": "GObject;_klass,internal"
-    },
-    closure1: {
+    closure35: {
       "^": "Closure:0;",
       call$0: function() {
-        return new L.Klass(J.$index$asx($.$get$_gtk(), "Label"));
+        return new T.Align(J.$index$asx($.$get$Align__nativeCtor(), "START").getValue$0());
+      }
+    },
+    DrawingArea: {
+      "^": "Widget;_klass,internal",
+      static: {DrawingArea$: function() {
+          var t1, t2;
+          t1 = $.$get$DrawingArea_klass();
+          t2 = t1.ctor$1([P.JsObject_JsObject$jsify(P.LinkedHashMap__makeEmpty())]);
+          t1 = new T.DrawingArea(t1, t2);
+          J.$indexSet$ax(t2, "_DART_", t1);
+          return t1;
+        }}
+    },
+    closure39: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass(J.$index$asx($.$get$_gtk(), "DrawingArea"));
+      }
+    },
+    Widget: {
+      "^": "GObject;",
+      get$_onDraw: function() {
+        return this.streamControllerFromNativeOneArgSynchronous$2("draw", new T.Widget__onDraw_closure());
+      },
+      get$display: function() {
+        var newInternal, t1, t2;
+        newInternal = H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("get_display", []);
+        t1 = J.getInterceptor$asx(newInternal);
+        if (t1.$index(newInternal, "_DART_") == null) {
+          t2 = new F.Display($.$get$Display_klass(), newInternal);
+          t1.$indexSet(newInternal, "_DART_", t2);
+          t1.$indexSet(newInternal, "_DART_", t2);
+        }
+        return t1.$index(newInternal, "_DART_");
+      },
+      get$screen: function(_) {
+        var newInternal, t1, t2;
+        newInternal = H.interceptedTypeCast(this.internal, "$isJsObject").callMethod$2("get_screen", []);
+        t1 = J.getInterceptor$asx(newInternal);
+        if (t1.$index(newInternal, "_DART_") == null) {
+          t2 = new F.Screen($.$get$Screen_klass(), newInternal);
+          t1.$indexSet(newInternal, "_DART_", t2);
+          t1.$indexSet(newInternal, "_DART_", t2);
+        }
+        return t1.$index(newInternal, "_DART_");
+      },
+      set$visual: function(value) {
+        var t1 = H.interceptedTypeCast(this.internal, "$isJsObject");
+        return t1.callMethod$2("set_visual", [value == null ? null : value.get$internal()]);
+      }
+    },
+    Widget__onDraw_closure: {
+      "^": "Closure:2;",
+      call$1: function(newInternal) {
+        var t1, t2;
+        t1 = J.getInterceptor$asx(newInternal);
+        if (t1.$index(newInternal, "_DART_") == null) {
+          t2 = new L.Context($.$get$Context_klass(), newInternal);
+          t1.$indexSet(newInternal, "_DART_", t2);
+          t1.$indexSet(newInternal, "_DART_", t2);
+        }
+        return new L.DrawEvent(t1.$index(newInternal, "_DART_"), false);
+      }
+    },
+    Window0: {
+      "^": "Widget;_klass,internal",
+      setGeometryHints$3: function(geometryWidget, geometry, geomMask) {
+        var t1 = H.interceptedTypeCast(this.internal, "$isJsObject");
+        return t1.callMethod$2("set_geometry_hints", [null, geometry.internal, J.get$value$x(geomMask)]);
+      },
+      static: {Window$: function(type) {
+          var t1, t2;
+          t1 = $.$get$Window_klass();
+          t2 = t1.ctor$1([P.JsObject_JsObject$jsify(P.LinkedHashMap__makeLiteral(["type", $.$get$WindowType_TOPLEVEL().get$_windowType()]))]);
+          t1 = new T.Window0(t1, t2);
+          J.$indexSet$ax(t2, "_DART_", t1);
+          return t1;
+        }}
+    },
+    closure19: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass(J.$index$asx($.$get$_gtk(), "Window"));
+      }
+    },
+    WindowType: {
+      "^": "Object;_windowType<"
+    },
+    closure17: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_gtk(), "WindowType");
+      }
+    },
+    closure16: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new T.WindowType(J.$index$asx($.$get$WindowType__nativeCtor(), "TOPLEVEL").getValue$0());
       }
     }
-  }], ["gjs_integration.test", "gjs_integration_test.dart",, L, {
+  }], ["gjs_integration.rsvg", "package:gjs_integration/rsvg.dart",, D, {
     "^": "",
-    main: [function(args) {
-      var t1, t2, t3, t4;
-      t1 = $.$get$App_klass();
-      t2 = t1.ctor$1([P.LinkedHashMap__makeLiteral(["_FROM_DART", true, "x", true])]);
-      J.$indexSet$ax(t2, "_DART_", new L.App(null, true, t1, t2));
-      t1 = [];
-      C.JSArray_methods.addAll$1(t1, J.map$1$ax(args, P.js___convertToJS$closure()));
-      t1 = H.setRuntimeTypeInfo(new P.JsArray(t1), [null]);
-      t3 = $.$get$wrapGjsCall();
-      t4 = [];
-      C.JSArray_methods.addAll$1(t4, C.JSArray_methods.map$1([t1], P.js___convertToJS$closure()));
-      t3.apply$1([t2, "run", H.setRuntimeTypeInfo(new P.JsArray(t4), [null])]);
-    }, "call$1", "test__main$closure", 2, 0, 14],
-    App: {
-      "^": "Application;_appWindow,x>,_klass,internal",
-      activate$0: function() {
-        H.interceptedTypeCast(this.get$appWindow().internal, "$isJsObject").callMethod$2("show_all", []);
-        H.interceptedTypeCast(this.get$appWindow().internal, "$isJsObject").callMethod$2("present", []);
-      },
-      get$appWindow: function() {
-        var t1, t2, t3;
-        if (this._appWindow == null) {
-          t1 = $.$get$ApplicationWindow_klass();
-          t2 = t1.ctor$1([P.JsObject_JsObject$jsify(P.LinkedHashMap__makeLiteral(["application", this.internal, "title", "Hello World!"]))]);
-          t1 = new T.ApplicationWindow(t1, t2);
-          J.$indexSet$ax(t2, "_DART_", t1);
-          this._appWindow = t1;
-          H.interceptedTypeCast(t2, "$isJsObject").callMethod$2("set_default_size", [200, 200]);
-          t2 = this._appWindow;
-          t1 = $.$get$Label_klass();
-          t3 = t1.ctor$1([P.JsObject_JsObject$jsify(P.LinkedHashMap__makeLiteral(["label", "Hello world"]))]);
-          J.$indexSet$ax(t3, "_DART_", new T.Label(t1, t3));
-          H.interceptedTypeCast(t2.internal, "$isJsObject").callMethod$2("add", [t3]);
-        }
-        return this._appWindow;
-      }
-    },
-    closure0: {
+    closure27: {
       "^": "Closure:0;",
       call$0: function() {
-        var result, t1;
-        result = $.$get$lang().newClass$3$extend$options("App", $.$get$Application_klass(), P.LinkedHashMap__makeLiteral(["_init", P.JsFunction_JsFunction$withThis(new L._closure()), "vfunc_activate", P.JsFunction_JsFunction$withThis(new L._closure0()), "get_x", P.JsFunction_JsFunction$withThis(new L._closure1())]));
-        t1 = P.JsFunction_JsFunction$withThis(new L._closure2());
-        H.interceptedTypeCast(result.internal, "$isLangClassWrapper").internal.callMethod$2("installProperty", ["x", t1, null]);
-        return result;
+        return L.ImportWrapper_ImportWrapper(["gi", "Rsvg"]);
       }
     },
-    _closure: {
-      "^": "Closure:12;",
-      call$2: [function(this_, options) {
-        var t1, x, _FROM_DART, t2;
-        t1 = J.getInterceptor$asx(options);
-        x = t1.$index(options, "x");
-        _FROM_DART = options.containsKey$1("_FROM_DART") && t1.$index(options, "_FROM_DART");
-        this_.callMethod$1("parent");
-        if (_FROM_DART !== true) {
-          t1 = new L.App(null, x, $.$get$App_klass(), this_);
-          t2 = J.getInterceptor$ax(this_);
-          t2.$indexSet(this_, "_DART_", t1);
-          t2.$indexSet(this_, "_DART_", t1);
+    Handle: {
+      "^": "GObjectBase;_klass,internal"
+    },
+    closure26: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return J.$index$asx($.$get$_rsvg(), "Handle");
+      }
+    },
+    closure25: {
+      "^": "Closure:0;",
+      call$0: function() {
+        return new L.Klass($.$get$Handle__nativeCtor());
+      }
+    }
+  }], ["gjs_integration.test", "wall_clock.dart",, L, {
+    "^": "",
+    main: [function(args) {
+      var t1, app, t2, t3, t4, circleMap, t5, windowVisual;
+      t1 = $.$get$_gtk();
+      J.$index$asx(t1, "init").func$1([null, 0]);
+      app = new L.ClockApp(null);
+      t2 = new L.ClockFace(160, app, null, null, null);
+      t3 = $.$get$Format_A1();
+      t4 = $.$get$ImageSurface_klass();
+      t3 = t4.ctor$1([J.get$value$x(t3), 160, 160]);
+      circleMap = new L.ImageSurface(t4, t3);
+      J.$indexSet$ax(t3, "_DART_", circleMap);
+      t4 = $.$get$Context_klass();
+      t3 = t4.ctor$1([t3]);
+      J.$indexSet$ax(t3, "_DART_", new L.Context(t4, t3));
+      H.interceptedTypeCast(t3, "$isJsObject");
+      t3.callMethod$2("arc", [80, 80, 80, 0, 6.283185307179586]);
+      t3.callMethod$2("fill", []);
+      F.Pixbuf_getFromSurface(circleMap, 0, 0, 160, 160);
+      t3 = T.DrawingArea$();
+      t4 = H.interceptedTypeCast(t3.internal, "$isJsObject");
+      t4.$indexSet(0, "width_request", 160);
+      t4.$indexSet(0, "height_request", 160);
+      t4.$indexSet(0, "visible", true);
+      t4.$indexSet(0, "can_focus", false);
+      t4.$indexSet(0, "events", J.get$value$x($.$get$EventMask_STRUCTURE_MASK()));
+      t4.$indexSet(0, "halign", J.get$value$x($.$get$Align_START()));
+      t4 = t3.get$_onDraw();
+      t4.toString;
+      H.setRuntimeTypeInfo(new P._ControllerStream(t4), [H.getTypeArgumentByIndex(t4, 0)]).listen$1(t2.get$redrawSurface());
+      t2.drawingArea = t3;
+      t3 = T.Window$(null);
+      t4 = $.$get$Gravity_SOUTH_EAST();
+      t5 = H.interceptedTypeCast(t3.internal, "$isJsObject");
+      t5.$indexSet(0, "gravity", J.get$value$x(t4));
+      t5.$indexSet(0, "default_height", 160);
+      t5.$indexSet(0, "default_height", 160);
+      t5.$indexSet(0, "opacity", 1);
+      t5.$indexSet(0, "decorated", false);
+      t5.$indexSet(0, "title", "wallclock");
+      t5.$indexSet(0, "accept_focus", true);
+      t5.$indexSet(0, "skip_pager_hint", true);
+      t5.$indexSet(0, "skip_taskbar_hint", true);
+      t5.$indexSet(0, "role", "clock");
+      t5.$indexSet(0, "app_paintable", true);
+      t5.callMethod$2("stick", []);
+      t5.callMethod$2("set_keep_above", [true]);
+      t3.setGeometryHints$3(null, F.Geometry$(null, null, null, 1, 200, 200, 1, 100, 100, null, null), J.$or$n(J.$or$n($.$get$WindowHints_MAX_SIZE(), $.$get$WindowHints_MIN_SIZE()), $.$get$WindowHints_ASPECT()));
+      t5.callMethod$2("add", [t2.drawingArea.internal]);
+      t2.window = t3;
+      windowVisual = t3.get$screen(t3).get$rgbaVisual();
+      if (windowVisual == null) {
+        t3 = t2.window;
+        windowVisual = t3.get$screen(t3).get$systemVisual();
+      }
+      t2.window.set$visual(windowVisual);
+      t2.window.get$display().supportsShapes$0();
+      app._face = t2;
+      H.interceptedTypeCast(t2.window.internal, "$isJsObject").callMethod$2("show_all", []);
+      H.interceptedTypeCast(t2.window.internal, "$isJsObject").callMethod$2("present", []);
+      $.$get$_gjsPrint().apply$1(["Presenting"]);
+      P.Future_Future(app.get$scheduleRedraws(), null);
+      J.$index$asx(t1, "main").func$1([]);
+    }, "call$1", "test__main$closure", 2, 0, 19],
+    ClockApp: {
+      "^": "Object;_face",
+      scheduleRedraws$0: [function() {
+        P.Timer_Timer$periodic(P.Duration$(0, 0, 0, 250, 0, 0), this._face.get$scheduleRedraw());
+      }, "call$0", "get$scheduleRedraws", 0, 0, 0]
+    },
+    ClockFace: {
+      "^": "Object;width,_app,window,drawingArea,_imageSurface",
+      redrawSurface$1: [function($event) {
+        var t1, context, t2, t3, t4, scale, currentTime, seconds, minutes, hours;
+        t1 = $.$get$_gjsPrint();
+        t1.apply$1(["Redrawing"]);
+        context = $event.get$cr();
+        context.save$0();
+        context.setOperator$1($.$get$Operator_SOURCE());
+        context.setSourceRGBA$4(0, 0, 0, 0);
+        if (this._imageSurface == null) {
+          t2 = $.$get$Format_ARGB32();
+          t3 = this.width;
+          t4 = $.$get$ImageSurface_klass();
+          t2 = t4.ctor$1([J.get$value$x(t2), t3, t3]);
+          t4 = new L.ImageSurface(t4, t2);
+          J.$indexSet$ax(t2, "_DART_", t4);
+          this._imageSurface = t4;
+          t4 = $.$get$Context_klass();
+          t2 = t4.ctor$1([t2]);
+          J.$indexSet$ax(t2, "_DART_", new L.Context(t4, t2));
+          t1.apply$1(["Loading clock face."]);
+          t1 = J.$index$asx($.$get$Handle__nativeCtor(), "new_from_file").func$1(["clock-bg.svg"]);
+          J.$indexSet$ax(t1, "_DART_", new D.Handle($.$get$Handle_klass(), t1));
+          H.interceptedTypeCast(t1, "$isJsObject");
+          t4 = C.JSNumber_methods.toDouble$0(P.min(t1.$index(0, "width"), t1.$index(0, "height")));
+          H.interceptedTypeCast(t2, "$isJsObject");
+          t2.callMethod$2("save", []);
+          t3 = t4 / t3 / 2;
+          t2.callMethod$2("scale", [t3, t3]);
+          t2.callMethod$2("setOperator", [J.get$value$x($.$get$Operator_OVER())]);
+          t1.callMethod$2("render_cairo", [t2]);
+          t2.callMethod$2("restore", []);
         }
-      }, null, null, 4, 0, null, 0, 19, "call"]
-    },
-    _closure0: {
-      "^": "Closure:3;",
-      call$1: [function(this_) {
-        J.$index$asx(this_, "_DART_").activate$0();
-      }, null, null, 2, 0, null, 0, "call"]
-    },
-    _closure1: {
-      "^": "Closure:3;",
-      call$1: [function(this_) {
-        return J.get$x$x(J.$index$asx(this_, "_DART_"));
-      }, null, null, 2, 0, null, 0, "call"]
-    },
-    _closure2: {
-      "^": "Closure:3;",
-      call$1: [function(this_) {
-        return this_.callMethod$1("get_x");
-      }, null, null, 2, 0, null, 0, "call"]
+        context.setSourceSurface$3(this._imageSurface, 0, 0);
+        context.paint$0();
+        context.restore$0();
+        scale = this.width;
+        currentTime = new P.DateTime(Date.now(), false);
+        seconds = H.Primitives_getSeconds(currentTime);
+        minutes = H.Primitives_getMinutes(currentTime);
+        hours = H.Primitives_getHours(currentTime);
+        context.save$0();
+        t1 = J.getInterceptor$x(context);
+        t1.scale$2(context, scale, scale);
+        t1.translate$2(context, 0.52, 0.52);
+        t1.scale$2(context, 0.9, 0.9);
+        context.save$0();
+        t2 = seconds * 3.141592653589793;
+        t3 = minutes * 3.141592653589793;
+        t1.rotate$1(context, t2 / 21600 + t3 / 360 + hours * 3.141592653589793 / 6 - 1.5707963267948966);
+        context.setSourceRGB$3(0, 0, 0);
+        t1.moveTo$2(context, -0.057, 0.0115);
+        context.lineTo$2(-0.057, -0.0115);
+        context.lineTo$2(0.2275, -0.00725);
+        context.lineTo$2(0.2275, 0.00725);
+        context.fill$0();
+        context.restore$0();
+        context.save$0();
+        t1.rotate$1(context, t2 / 1800 + t3 / 30 - 1.5707963267948966);
+        context.setSourceRGB$3(0, 0, 0);
+        t1.moveTo$2(context, -0.065, 0.00833);
+        context.lineTo$2(-0.065, -0.00833);
+        context.lineTo$2(0.3265, -0.00433);
+        context.lineTo$2(0.3265, 0.00433);
+        context.fill$0();
+        context.restore$0();
+        context.save$0();
+        t1.rotate$1(context, t2 / 30 - 1.5707963267948966);
+        context.setSourceRGB$3(0.83, 0, 0);
+        t1.moveTo$2(context, -0.075, 0);
+        context.lineTo$2(0.415, 0);
+        context.setLineWidth$1(0.0075);
+        context.setLineCap$1($.$get$LineCap_ROUND());
+        context.stroke$0();
+        context.restore$0();
+        context.restore$0();
+        J.stopPropagation$0$x($event);
+      }, "call$1", "get$redrawSurface", 2, 0, 16, 28],
+      scheduleRedraw$1: [function(timer) {
+        if (H.interceptedTypeCast(this.drawingArea.internal, "$isJsObject").$index(0, "visible") === true)
+          H.interceptedTypeCast(this.drawingArea.internal, "$isJsObject").callMethod$2("queue_draw", []);
+      }, "call$1", "get$scheduleRedraw", 2, 0, 17]
     }
   }, 1]];
   setupProgram(dart, 0);
@@ -7000,14 +9083,20 @@ var getKeys = function(obj){
       return receiver;
     return J.getNativeInterceptor(receiver);
   };
+  J.get$error$x = function(receiver) {
+    return J.getInterceptor$x(receiver).get$error(receiver);
+  };
   J.get$iterator$ax = function(receiver) {
     return J.getInterceptor$ax(receiver).get$iterator(receiver);
   };
   J.get$length$asx = function(receiver) {
     return J.getInterceptor$asx(receiver).get$length(receiver);
   };
-  J.get$x$x = function(receiver) {
-    return J.getInterceptor$x(receiver).get$x(receiver);
+  J.get$result$x = function(receiver) {
+    return J.getInterceptor$x(receiver).get$result(receiver);
+  };
+  J.get$value$x = function(receiver) {
+    return J.getInterceptor$x(receiver).get$value(receiver);
   };
   J.$add$ns = function(receiver, a0) {
     if (typeof receiver == "number" && typeof a0 == "number")
@@ -7035,6 +9124,11 @@ var getKeys = function(obj){
       return receiver < a0;
     return J.getInterceptor$n(receiver).$lt(receiver, a0);
   };
+  J.$or$n = function(receiver, a0) {
+    if (typeof receiver == "number" && typeof a0 == "number")
+      return (receiver | a0) >>> 0;
+    return J.getInterceptor$n(receiver).$or(receiver, a0);
+  };
   J.$shl$n = function(receiver, a0) {
     return J.getInterceptor$n(receiver).$shl(receiver, a0);
   };
@@ -7051,6 +9145,9 @@ var getKeys = function(obj){
   };
   J.map$1$ax = function(receiver, a0) {
     return J.getInterceptor$ax(receiver).map$1(receiver, a0);
+  };
+  J.stopPropagation$0$x = function(receiver) {
+    return J.getInterceptor$x(receiver).stopPropagation$0(receiver);
   };
   J.get$hashCode$ = function(receiver) {
     return J.getInterceptor(receiver).get$hashCode(receiver);
@@ -7075,11 +9172,14 @@ var getKeys = function(obj){
   };
   var $ = Isolate.$isolateProperties;
   C.JSArray_methods = J.JSArray.prototype;
+  C.JSDouble_methods = J.JSDouble.prototype;
   C.JSInt_methods = J.JSInt.prototype;
+  C.JSNumber_methods = J.JSNumber.prototype;
   C.JSString_methods = J.JSString.prototype;
   C.PlainJavaScriptObject_methods = J.PlainJavaScriptObject.prototype;
   C.UnknownJavaScriptObject_methods = J.UnknownJavaScriptObject.prototype;
   C.C_DynamicRuntimeType = new H.DynamicRuntimeType();
+  C.C__DelayedDone = new P._DelayedDone();
   C.C__RootZone = new P._RootZone();
   C.Duration_0 = new P.Duration(0);
   C.JS_CONST_0 = function(hooks) {
@@ -7330,29 +9430,97 @@ var getKeys = function(obj){
     };
   }, "_ImportWrapper", "$get$_ImportWrapper", "_ImportWrapper", function() {
     return new L.closure3().call$0();
-  }, "_KlassWrapper", "$get$_KlassWrapper", "_KlassWrapper", function() {
-    return new L.closure7().call$0();
-  }, "wrapGjsCall", "$get$wrapGjsCall", "wrapGjsCall", function() {
+  }, "_gjsPrint", "$get$_gjsPrint", "_gjsPrint", function() {
     return new L.closure().call$0();
-  }, "lang", "$get$lang", "lang", function() {
-    return new L.closure6().call$0();
-  }, "Lang__newLangClass", "$get$Lang__newLangClass", "_newLangClass", function() {
-    return new L.closure8().call$0();
+  }, "_cairo", "$get$_cairo", "_cairo", function() {
+    return new L.closure22().call$0();
+  }, "ImageSurface__nativeCtor", "$get$ImageSurface__nativeCtor", "_nativeCtor", function() {
+    return new L.closure31().call$0();
+  }, "ImageSurface_klass", "$get$ImageSurface_klass", "klass", function() {
+    return new L.closure30().call$0();
+  }, "Context__nativeCtor", "$get$Context__nativeCtor", "_nativeCtor", function() {
+    return new L.closure29().call$0();
+  }, "Context_klass", "$get$Context_klass", "klass", function() {
+    return new L.closure28().call$0();
+  }, "Format__nativeCtor", "$get$Format__nativeCtor", "_nativeCtor", function() {
+    return new L.closure33().call$0();
+  }, "Format_ARGB32", "$get$Format_ARGB32", "ARGB32", function() {
+    return new L.closure32().call$0();
+  }, "Format_A1", "$get$Format_A1", "A1", function() {
+    return new L.closure42().call$0();
+  }, "LineCap__nativeCtor", "$get$LineCap__nativeCtor", "_nativeCtor", function() {
+    return new L.closure21().call$0();
+  }, "LineCap_ROUND", "$get$LineCap_ROUND", "ROUND", function() {
+    return new L.closure20().call$0();
+  }, "Operator__nativeCtor", "$get$Operator__nativeCtor", "_nativeCtor", function() {
+    return new L.closure24().call$0();
+  }, "Operator_OVER", "$get$Operator_OVER", "OVER", function() {
+    return new L.closure23().call$0();
+  }, "Operator_SOURCE", "$get$Operator_SOURCE", "SOURCE", function() {
+    return new L.closure34().call$0();
+  }, "_gdk", "$get$_gdk", "_gdk", function() {
+    return new F.closure2().call$0();
+  }, "EventMask__nativeCtor", "$get$EventMask__nativeCtor", "_nativeCtor", function() {
+    return new F.closure38().call$0();
+  }, "EventMask_STRUCTURE_MASK", "$get$EventMask_STRUCTURE_MASK", "STRUCTURE_MASK", function() {
+    return new F.closure37().call$0();
+  }, "Display__nativeCtor", "$get$Display__nativeCtor", "_nativeCtor", function() {
+    return new F.closure1().call$0();
+  }, "Display_klass", "$get$Display_klass", "klass", function() {
+    return new F.closure0().call$0();
+  }, "Geometry__nativeCtor", "$get$Geometry__nativeCtor", "_nativeCtor", function() {
+    return new F.closure13().call$0();
+  }, "Geometry_klass", "$get$Geometry_klass", "klass", function() {
+    return new F.closure12().call$0();
+  }, "Gravity__nativeCtor", "$get$Gravity__nativeCtor", "_nativeCtor", function() {
+    return new F.closure15().call$0();
+  }, "Gravity_SOUTH_EAST", "$get$Gravity_SOUTH_EAST", "SOUTH_EAST", function() {
+    return new F.closure14().call$0();
+  }, "Pixbuf__nativeCtor", "$get$Pixbuf__nativeCtor", "_nativeCtor", function() {
+    return new F.closure41().call$0();
+  }, "Pixbuf_klass", "$get$Pixbuf_klass", "klass", function() {
+    return new F.closure40().call$0();
+  }, "Screen__nativeCtor", "$get$Screen__nativeCtor", "_nativeCtor", function() {
+    return new F.closure7().call$0();
+  }, "Screen_klass", "$get$Screen_klass", "klass", function() {
+    return new F.closure6().call$0();
+  }, "Visual__nativeCtor", "$get$Visual__nativeCtor", "_nativeCtor", function() {
+    return new F.closure5().call$0();
+  }, "Visual_klass", "$get$Visual_klass", "klass", function() {
+    return new F.closure4().call$0();
+  }, "WindowHints__nativeCtor", "$get$WindowHints__nativeCtor", "_nativeCtor", function() {
+    return new F.closure9().call$0();
+  }, "WindowHints_MIN_SIZE", "$get$WindowHints_MIN_SIZE", "MIN_SIZE", function() {
+    return new F.closure10().call$0();
+  }, "WindowHints_MAX_SIZE", "$get$WindowHints_MAX_SIZE", "MAX_SIZE", function() {
+    return new F.closure11().call$0();
+  }, "WindowHints_ASPECT", "$get$WindowHints_ASPECT", "ASPECT", function() {
+    return new F.closure8().call$0();
   }, "_gtk", "$get$_gtk", "_gtk", function() {
-    return new T.closure2().call$0();
-  }, "Application_klass", "$get$Application_klass", "klass", function() {
-    return new T.closure5().call$0();
-  }, "ApplicationWindow_klass", "$get$ApplicationWindow_klass", "klass", function() {
-    return new T.closure4().call$0();
-  }, "Label_klass", "$get$Label_klass", "klass", function() {
-    return new T.closure1().call$0();
-  }, "App_klass", "$get$App_klass", "klass", function() {
-    return new L.closure0().call$0();
+    return new T.closure18().call$0();
+  }, "Align__nativeCtor", "$get$Align__nativeCtor", "_nativeCtor", function() {
+    return new T.closure36().call$0();
+  }, "Align_START", "$get$Align_START", "START", function() {
+    return new T.closure35().call$0();
+  }, "DrawingArea_klass", "$get$DrawingArea_klass", "klass", function() {
+    return new T.closure39().call$0();
+  }, "Window_klass", "$get$Window_klass", "klass", function() {
+    return new T.closure19().call$0();
+  }, "WindowType__nativeCtor", "$get$WindowType__nativeCtor", "_nativeCtor", function() {
+    return new T.closure17().call$0();
+  }, "WindowType_TOPLEVEL", "$get$WindowType_TOPLEVEL", "TOPLEVEL", function() {
+    return new T.closure16().call$0();
+  }, "_rsvg", "$get$_rsvg", "_rsvg", function() {
+    return new D.closure27().call$0();
+  }, "Handle__nativeCtor", "$get$Handle__nativeCtor", "_nativeCtor", function() {
+    return new D.closure26().call$0();
+  }, "Handle_klass", "$get$Handle_klass", "klass", function() {
+    return new D.closure25().call$0();
   }]);
   Isolate = Isolate.$finishIsolateConstructor(Isolate);
   $ = new Isolate();
-  init.metadata = ["this_", "o", "x", "object", "sender", "e", "closure", "isolate", "numberOfArguments", "arg1", "arg2", "arg3", "arg4", "each", "_", "callback", "captureThis", "self", "arguments", "options"];
-  init.types = [{func: 1}, {func: 1, args: [,]}, {func: 1, void: true}, {func: 1, args: [P.JsObject]}, {func: 1, void: true, args: [{func: 1, void: true}]}, {func: 1, ret: P.String, args: [P.$int]}, {func: 1, args: [P.String,,]}, {func: 1, args: [, P.String]}, {func: 1, args: [P.String]}, {func: 1, args: [{func: 1, void: true}]}, {func: 1, args: [,,]}, {func: 1, args: [P.Symbol,,]}, {func: 1, args: [P.JsObject,,]}, {func: 1, ret: P.Object, args: [,]}, {func: 1, void: true, args: [P.List]}];
+  init.metadata = ["error", "stackTrace", null, "o", "x", "_", "data", "arg", "object", "sender", "e", "closure", "isolate", "numberOfArguments", "arg1", "arg2", "arg3", "arg4", "each", "value", "ignored", "element", "callback", "captureThis", "self", "arguments", "_self", "result", "event"];
+  init.types = [{func: 1}, {func: 1, void: true}, {func: 1, args: [,]}, {func: 1, void: true, args: [{func: 1, void: true}]}, {func: 1, void: true, args: [,], opt: [P.StackTrace]}, {func: 1, args: [,], opt: [,]}, {func: 1, args: [,,]}, {func: 1, ret: P.String, args: [P.$int]}, {func: 1, args: [P.String,,]}, {func: 1, args: [, P.String]}, {func: 1, args: [P.String]}, {func: 1, args: [{func: 1, void: true}]}, {func: 1, ret: P.bool}, {func: 1, args: [, P.StackTrace]}, {func: 1, void: true, args: [, P.StackTrace]}, {func: 1, args: [P.Symbol,,]}, {func: 1, void: true, args: [L.DrawEvent]}, {func: 1, void: true, args: [P.Timer]}, {func: 1, ret: P.Object, args: [,]}, {func: 1, void: true, args: [P.List]}];
   function convertToFastObject(properties) {
     function MyClass() {
     }
@@ -7512,4 +9680,4 @@ var getKeys = function(obj){
   // END invoke [main].
 })();
 
-//# sourceMappingURL=gjs_integration_test.dart.js.map
+//# sourceMappingURL=wall_clock.dart.js.map

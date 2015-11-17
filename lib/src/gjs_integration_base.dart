@@ -51,8 +51,8 @@ class ImportWrapper extends GjsObject implements GjsCtor {
 
   JsObject ctor(List args) => internal.callMethod('ctor', args);
   JsObject get _wrapped => internal;
-  JsObject func(List args) => internal.callMethod('func', [args]);
-  JsObject getValue() => internal.callMethod('getValue');
+  func(List args) => internal.callMethod('func', args);
+  getValue() => internal.callMethod('getValue');
 }
 
 class LangClassWrapper extends GjsObject implements GjsCtor {

@@ -27,12 +27,41 @@
     }
     this.wrapped = result;
   };
-  self.ImportWrapper.prototype.ctor = function (args) {
-    return new this.wrapped(args);
+  self.ImportWrapper.prototype.ctor = function () {
+    if (arguments.length === 0) {
+      return new this.wrapped();
+    }
+    if (arguments.length === 1) {
+      return new this.wrapped(arguments[0]);
+    }
+    if (arguments.length === 2) {
+      return new this.wrapped(arguments[0], arguments[1]);
+    }
+    if (arguments.length === 3) {
+      return new this.wrapped(arguments[0], arguments[1], arguments[2]);
+    }
+    throw("too many arguments");    
   };
-  self.ImportWrapper.prototype.func = function (args, _) {
-    print(_);
-    return this.wrapped.call(args);
+  self.ImportWrapper.prototype.func = function () {
+    if (arguments.length === 0) {
+      return this.wrapped();
+    }
+    if (arguments.length === 1) {
+      return this.wrapped(arguments[0]);
+    }
+    if (arguments.length === 2) {
+      return this.wrapped(arguments[0], arguments[1]);
+    }
+    if (arguments.length === 3) {
+      return this.wrapped(arguments[0], arguments[1], arguments[2]);
+    }
+    if (arguments.length === 4) {
+      return this.wrapped(arguments[0], arguments[1], arguments[2], arguments[3]);
+    }
+    if (arguments.length === 5) {
+      return this.wrapped(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+    }
+    throw("too many arguments");    
   };
   self.ImportWrapper.prototype.getValue = function () {
     return this.wrapped;
@@ -157,7 +186,7 @@
     return id;
   }
   function addTask(f) {
-    GLib.idle_add(GLib.PRIORITY_IDLE_HIGH, f);
+    GLib.idle_add(GLib.PRIORITY_HIGH_IDLE, f);
   }
   self.setTimeout = addTimer;
   self.clearTimeout = cancelTimer;
